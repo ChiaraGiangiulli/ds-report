@@ -125,6 +125,42 @@ Here you should explain:
 
 \section{Requirements Elicitation and Analysis}\label{requirements}
 
+This section details the functional and non-functional requirements for the "Nomi, Cose, Città" distributed multiplayer game.
+
+\begin{itemize}
+  \item \textbf{Functional Requirements}:
+  \begin{itemize}
+    \item \textbf{Multiplayer session management}: 
+      Players must be able to join a shared game room. 
+      The system must support robust room creation and player management.
+    \item \textbf{Core Gameplay Mechanics}:
+      The game must present players with category-based challenges and an initial letter.
+      At the starting of the game the players must select at max 5 categories to add to the default ones (Nomi, Cose, Città)
+      from a predefined list, the server will start the game using the top 5 categories voted for, and a random letter.
+      If less than 5 categories are selected, the server will fill the remaining categories with default ones.
+      Players must be able to insert their answers before a timer runs out.
+      At the end of each round, the system must evaluate answers (check that the first letter is the same as the given one),
+      after the players have to vote if each answer is valid or not.
+    \item \textbf{REVIEW NEEDED - Collaborative Validation}: 
+      The system must provide a validation phase where players can review other players' answers. 
+      Players must be able to vote to accept or reject each answer via chat.
+    \item \textbf{Real-time Chatting}:
+      The system must provide a live chat feature for players to communicate during the game.
+    \item \textbf{Scoring and Vicotry}:
+      The system must include a point system. Points are awarded for validated answers, 
+      and the first player to reach a target score wins.
+      The point system is as follows:
+      \begin{itemize}
+        \item 15 points for a valid answer in a category in which no other player has answered;
+        \item 10 points for a valid answer not used by anyone else in the same category;
+        \item 5 points for a valid answer but used by at least one other player in the same category;
+        \item 0 points for an invalid answer.
+      The round points are the sum of each category points.
+  \end{itemize}
+  \item \textbf{Non-Functional Requirements}:
+  \item \textbf{Implementation Requirements}:
+\end{itemize}
+
 \begin{itemize}
   \item The requirements must explain \textbf{what} (not how) the software
   being produced should do.
