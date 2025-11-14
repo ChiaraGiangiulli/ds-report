@@ -110,7 +110,37 @@ This section details the functional and non-functional requirements for the "Nom
       The round points are the sum of each category points.
   \end{itemize}
   \item \textbf{Non-Functional Requirements}:
-  \item \textbf{Implementation Requirements}:
+    \begin{itemize}
+      \item \textbf{System Architecture}:
+        The system must be implemented using a hybrid architecture, featuring a central 
+        server for authoritative game state and P2P communication for clients.
+      \item \textbf{Fault Tolerance}:
+        The system must ensure automatic recovery from disconnections and crashes.
+        \begin{itemize}
+          \item \textbf{Server Recovery}:
+            Must include persistent game state storage and automatic state restoration after crashes.
+            TODO: DA MIGLIORARE SE VOGLIAMO
+          \item \textbf{Client Recovery}:
+            Must support automatic reconnection to the server, re-establishment of P2P connections, 
+            and local state caching for seamless recovery.
+            TODO: DA MIGLIORARE SE VOGLIAMO
+        \end{itemize}
+      \item \textbf{REVIEW NEEDED - State Consistency}:
+        A synchronized game state must be maintained across all nodes.
+        Consistency is ensured via total ordering of game events by server timestamps.
+        The server must act as the authoritative source for conflict resolution.
+        P2P communications (e.g., voting, chat) will converge to a consistent state (eventual consistency).
+      \item \textbf{Performance}:
+        The system must support real-time multiplayer gameplay and chat, implying requirements for low latency and high concurrency.
+      \item \textbf{User Interface}:
+        The system must provide a lightweight, user-friendly GUI for seamless interaction.
+   \end{itemize}
+  \item \textbf{REVIEW NEEDED - Implementation}:
+    \begin{itemize}
+      \item \textbf{Programming Language}: The system must be implemented using the Python programming language (version 3.0 or higher).
+      \item \textbf{Software Tools}: The project must use Poetry for dependency management and packaging.
+      \item These implementation choices were not constrained by external factors but emerged as a consequence of the design adopted and the team familiarity with the Python ecosystem.
+    \end{itemize}
 \end{itemize}
 
 \begin{itemize}
