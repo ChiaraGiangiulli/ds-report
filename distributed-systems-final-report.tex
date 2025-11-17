@@ -38,40 +38,31 @@ ensuring consistent gameplay with fault tolerance and synchronized state across 
 
 \section{Concept}\label{concept}
 
-Here you should explain:
-
 \begin{itemize}
-  \item The type of product developed with that project, for example (non-exhaustive):
+  \item The application involves creating a simple and intuitive GUI designed to help players easily interact with the system
+  and compete with each other to achieve the highest score at the end of each round.
+
+  \item Use case description
   %
   \begin{itemize}
-    \item Application (with GUI, be it mobile, web, or desktop)
-    \item Command-line application (CLI could be used by humans or scripts)
-    \item Library
-    \item Web-service(s)
+    \item The game works as follows: multiple users can join a shared game room, where they are presented with a set of categories
+    and a starting letter. Players must quickly come up with words that fit the categories and begin with the given letter.
+    At the end of each round, participants review and vote on one another's answers to verify their validity. Points are
+    awarded based on the uniqueness and correctness of the answers, and the first player to reach a predetermined score wins the match.
+  
+    Users can join the game from anywhere in the world, as long as they have an internet connection to access the game server.
+    Sessions can start at any time and consist of multiple rounds. In each round, players submit their answers and vote on others'
+    responses in real time, under a time constraint that encourages speed and quick thinking.
+
+    Players interact with the system through a graphical interface that provides input fields for submitting answers and offers a 
+    chat feature to communicate with others during the game. Throughout the session, the system temporarily maintains data such as
+    usernames and scores, which are required to manage the game state and ensure proper functionality. No persistent storage is needed
+    beyond the duration of the session.
+    
+    The game mainly involves two roles: the players and the server. Players actively participate by submitting answers and voting,
+    while the game server manages the overall game state, enforces the rules, and coordinates communication between users.
   \end{itemize}
 
-  \item Use case description:
-  %
-  \begin{itemize}
-    \item \emph{what} is the software doing?
-    \item \emph{where} are the users?
-    \item \emph{when} and \emph{how frequently} do they interact with the system?
-    \item \emph{how} do they \emph{interact} with the system? which \emph{devices} are they using?
-    \item does the system need to \emph{store} user's \textbf{data}? \emph{which}? \emph{where}?
-    \item most likely, there will be \emph{multiple} \textbf{roles}
-  \end{itemize}
-
-  \item Why is distribution needed?
-  %
-  \begin{itemize}
-    \item geographically distributed environments?
-    \item computation speedup?
-    \item resource sharing?
-    \item fault tolerance?
-    \item other reasons?
-  \end{itemize}
-  %
-  In any case, please elaborate.
 \end{itemize}
 
 \section{Requirements Elicitation and Analysis}\label{requirements}
