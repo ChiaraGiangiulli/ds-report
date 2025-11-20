@@ -43,25 +43,26 @@ ensuring consistent gameplay with fault tolerance and synchronized state across 
   and compete with each other to achieve the highest score at the end of each round.
 
   \item Use case description
-  %
-  \begin{itemize}
-    \item The game works as follows: multiple users can join a shared game room, where they are presented with a set of categories
-    and a starting letter. Players must quickly come up with words that fit the categories and begin with the given letter.
-    At the end of each round, participants review and vote on one another's answers to verify their validity. Points are
-    awarded based on the uniqueness and correctness of the answers, and the first player to reach a predetermined score wins the match.
   
-    Users can join the game from anywhere in the world, as long as they have an internet connection to access the game server.
-    Sessions can start at any time and consist of multiple rounds. In each round, players submit their answers and vote on others'
-    responses in real time, under a time constraint that encourages speed and quick thinking.
+  The game works as follows: multiple users can join a shared game room, where they are presented with a set of categories
+  and a starting letter. Players must quickly come up with words that fit the categories and begin with the given letter.
+  At the end of each round, participants review and vote on one another's answers to verify their validity. Points are
+  awarded based on the uniqueness and correctness of the answers, and the first player to reach a predetermined score wins the match.
 
-    Players interact with the system through a graphical interface that provides input fields for submitting answers and offers a 
-    chat feature to communicate with others during the game. Throughout the session, the system temporarily maintains data such as
-    usernames and scores, which are required to manage the game state and ensure proper functionality. No persistent storage is needed
-    beyond the duration of the session.
-    
-    The game mainly involves two roles: the players and the server. Players actively participate by submitting answers and voting,
-    while the game server manages the overall game state, enforces the rules, and coordinates communication between users.
-  \end{itemize}
+  A game session can start at any time and consist of multiple rounds.
+  Once the session has begun, no new players can join, as doing so would compromise score fairness. 
+
+  In each round, players submit their answers and vote on others'
+  responses in real time, under a time constraint that encourages speed and quick thinking.
+
+  Players interact with the system through a graphical interface that provides input fields for submitting answers and offers a 
+  chat feature to communicate with others during the game. Throughout the session, the system temporarily maintains data such as
+  usernames and scores, which are required to manage the game state and ensure proper functionality. No persistent storage is needed
+  beyond the duration of the session.
+  
+  The game mainly involves two roles: the players and the server. Players actively participate by submitting answers and voting,
+  while the game server manages the overall game state, enforces the rules, and coordinates communication between users.
+
 
 \end{itemize}
 
@@ -72,24 +73,16 @@ This section details the functional and non-functional requirements for the "Nom
 \begin{itemize}
   \item \textbf{Functional Requirements}:
   \begin{itemize}
-    \item \textbf{Multiplayer session management}: 
-      Players must be able to join a shared game room. 
-      The system must support robust room creation and player management.
-    \item \textbf{Core Gameplay Mechanics}:
-      The game must present players with category-based challenges and an initial letter.
-      At the starting of the game the players must select at max 5 categories to add to the default ones (Nomi, Cose, Città)
+    \item Players must be able to join a shared game room.
+    \item The game must present players with categories and an initial letter.
+    \item The players must select at max 5 categories to add to the default ones (Nomi, Cose, Città)
       from a predefined list, the server will start the game using the top 5 categories voted for, and a random letter.
       If less than 5 categories are selected, the server will fill the remaining categories with default ones.
-      Players must be able to insert their answers before a timer runs out.
-      At the end of each round, the system must evaluate answers (check that the first letter is the same as the given one),
-      after the players have to vote if each answer is valid or not.
-    \item \textbf{REVIEW NEEDED - Collaborative Validation}: 
-      The system must provide a validation phase where players can review other players' answers. 
-      Players must be able to vote to accept or reject each answer via chat.
-    \item \textbf{Real-time Chatting}:
-      The system must provide a live chat feature for players to communicate during the game.
-    \item \textbf{Scoring and Vicotry}:
-      The system must include a point system. Points are awarded for validated answers, 
+    \item Players must be able to insert their answers before a timer runs out.
+    \item At the end of each round, the system must evaluate answers (check that the first letter is the same as the given one)
+    \item After the evaluation, players must be able to vote to accept or reject other players' answers.
+    \item The system must provide a live chat feature for players to communicate during the game.
+    \item The system must include a point system. Points are awarded for validated answers, 
       and the first player to reach a target score wins.
       The point system is as follows:
       \begin{itemize}
