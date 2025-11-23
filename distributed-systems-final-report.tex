@@ -130,65 +130,77 @@ This section details the functional and non-functional requirements for the "Nom
 \subsection{Relevant Distributed System Features}
 \label{ds-features}
 
-Motivate which distributed system features are relevant for your project, and which are not.
-%
 \begin{itemize}
-  \item transparency
-  \begin{itemize}
-    \item does your system need to hide distribution details from users or developers?
-    \item is it important that failures, location, or replication are invisible?
-  \end{itemize}
+  \item Transparency
+  
+    The system should hide network details from players: they simply join a match and play. 
+    However, full transparency is not required. 
+    Users may notice some effects of failures (e.g., reconnection messages or delays).
 
-  \item fault tolerance, dependability -- availability, reliability, integrity, maintainability, safety
-  \begin{itemize}
-    \item what happens if a component fails? is uninterrupted service required?
-    \item is data loss or corruption unacceptable?
-    \item how quickly must the system recover from faults?
-  \end{itemize}
+  \item Fault tolerance and dependability
+  
+    Since the system is distributed, components can fail:
+    \begin{itemize}
+      \item if the server stops, clients must detect it and try to reconnect;
+      \item if a client disconnects temporarily, it should be able to rejoin the match;
+      \item the game state (answers, votes, round results) must remain consistent.
+    \end{itemize}
+  We aim for good availability and integrity, but the game does not require strict safety guarantees.
 
-  \item scalability
-  \begin{itemize}
-    \item will the system need to handle increasing numbers of users, requests, or data?
-    \item is it expected to grow over time?
-  \end{itemize}
+  \item Scalability
+  
+    The system must support several simultaneous users in the same room.
+    However, the expected user base is small, so large-scale scalability is not necessary.
+    The design remains scalable in principle but optimized for lightweight usage.
 
-  \item security, trust
-  \begin{itemize}
-    \item is sensitive data being processed or stored?
-    \item are there multiple user roles with different permissions?
-    \item is authentication or authorization required?
-  \end{itemize}
+  \item Security and trust
+  
+    The game does not process sensitive personal data, so no advanced security mechanisms 
+    are required for the scope of this project. 
+    However, a minimal level of security is required:
+    \begin{itemize}
+      \item some form of identity (usernames) is needed;
+      \item input must be validated to avoid malicious or malformed messages;
+      \item voting integrity is important to avoid cheating.
+    \end{itemize}
 
-  \item resource sharing
-  \begin{itemize}
-    \item do multiple users or components need access to shared resources?
-    \item is coordination or synchronization needed?
-  \end{itemize}
+  \item Resource sharing
+  
+    Multiple clients interact with shared resources:
+    \begin{itemize}
+      \item the shared game state (letters, rounds, timers)
+      \item the shared answer list
+      \item the shared voting results
+      \item the shared chat
+    \end{itemize}
+    This requires coordination and synchronization, especially to ensure that
+    votes are counted consistently, rounds proceed only when all players have submitted and no two players modify the same shared state inconsistently.
+    The server then acts as the synchronizing authority.
+  
+  \item Openness, interoperability, heterogeneity of components
+  
+    The system is primarily implemented in Python and does not need to integrate with external services.
+    Cross-platform interoperability is relevant for testing and deployment.
 
-  \item openness, interoperability, heterogeneity of components
-  \begin{itemize}
-    \item Will your system interact with external systems or use components built with different technologies?
-    \item Is standardization or compatibility important?
-  \end{itemize}
+  \item Evolvability and maintainability
+  
+    The system will evolve during development (additional rules, improvements to fault tolerance, UI updates).
+    A modular architecture will help maintain and extend the project.
 
-  \item evolvability, maintainability
-  \begin{itemize}
-    \item Will the system need to be updated or extended after deployment?
-    \item Is long-term maintenance a concern?
-  \end{itemize}
+  \item Performance and concurrency
+  
+    The game is not real-time, but:
+    \begin{itemize}
+      \item the server must handle multiple clients concurrently;
+      \item chat and votes should be delivered timely;
+      \item network efficiency should avoid flooding or redundant messages.
+    \end{itemize}
+    High performance is not a strict requirement, but basic efficiency is important for a smooth experience.  
 
-  \item performance, concurrency, computation / communication efficiency, bandwidth
-  \begin{itemize}
-    \item Are there strict requirements on response time or throughput?
-    \item Will many operations happen in parallel?
-    \item Is network usage a concern?
-  \end{itemize}
-
-  \item economy, costs  
-  \begin{itemize}
-    \item Are there budget constraints for development, deployment, or operation?
-    \item Is minimizing resource usage important?
-  \end{itemize}
+  \item Economy and costs
+  
+    The project runs on standard personal computers and has no hosting or deployment costs.
+    
 \end{itemize}
 
 \section{Design}\label{design}
