@@ -72,7 +72,7 @@ This section details the functional and non-functional requirements for the "Nom
 
 \begin{itemize}
   \item \textbf{Functional Requirements}:
-  \begin{itemize}
+  \begin{enumerate}
     \item Players must be able to join a shared game room.
     \item The game must present players with categories and an initial letter.
     \item The players must select at max 5 categories to add to the default ones (Nomi, Cose, Città)
@@ -92,75 +92,39 @@ This section details the functional and non-functional requirements for the "Nom
         \item 0 points for an invalid answer.
       \end{itemize}
       The round points are the sum of each category points.
-  \end{itemize}
+  \end{enumerate}
   \item \textbf{Non-Functional Requirements}:
-    \begin{itemize}
-      \item \textbf{System Architecture}:
-        The system must be implemented using a hybrid architecture, featuring a central 
-        server for authoritative game state and P2P communication for clients.
-      \item \textbf{Fault Tolerance}:
+    \begin{enumerate}
+      \item Fault Tolerance:
         The system must ensure automatic recovery from disconnections and crashes.
         \begin{itemize}
-          \item \textbf{Server Recovery}:
-            Must include persistent game state storage and automatic state restoration after crashes.
-            TODO: DA MIGLIORARE SE VOGLIAMO
-          \item \textbf{Client Recovery}:
-            Must support automatic reconnection to the server, re-establishment of P2P connections, 
+          \item Server Recovery:
+            must include persistent game state storage and automatic state restoration after crashes.
+          \item Client Recovery:
+            must support automatic reconnection to the server, re-establishment of P2P connections, 
             and local state caching for seamless recovery.
-            TODO: DA MIGLIORARE SE VOGLIAMO
         \end{itemize}
-      \item \textbf{REVIEW NEEDED - State Consistency}:
+      \item State Consistency:
         A synchronized game state must be maintained across all nodes.
-        Consistency is ensured via total ordering of game events by server timestamps.
-        The server must act as the authoritative source for conflict resolution.
-        P2P communications (e.g., voting, chat) will converge to a consistent state (eventual consistency).
-      \item \textbf{Performance}:
-        The system must support real-time multiplayer gameplay and chat, implying requirements for low latency and high concurrency.
-      \item \textbf{User Interface}:
-        The system must provide a lightweight, user-friendly GUI for seamless interaction.
-   \end{itemize}
-  \item \textbf{REVIEW NEEDED - Implementation}:
-    \begin{itemize}
-      \item \textbf{Programming Language}: The system must be implemented using the Python programming language (version 3.0 or higher).
-      \item \textbf{Software Tools}: The project must use Poetry for dependency management and packaging.
-      \item These implementation choices were not constrained by external factors but emerged as a consequence of the design adopted and the team familiarity with the Python ecosystem.
-    \end{itemize}
-\end{itemize}
-
-\begin{itemize}
-  \item The requirements must explain \textbf{what} (not how) the software
-  being produced should do.
-  %
-  \begin{itemize}
-    \item you should not focus on the particular problems, but exclusively on
-    what you want the application to do.
-  \end{itemize}
-
-  \item Requirements must be clearly identified, and possibly numbered
-
-  \item Requirements are divided into:
-  %
-  \begin{itemize}
-    \item \textbf{Functional}: some functionality the software should provide to the user
-
-    \item \textbf{Non-functional}: requirements that do not directly concern behavioural aspects, such as consistency, availability, etc.
-
-    \item \textbf{Implementation}: constrain the entire phase of system realization, 
-    for instance by requiring the use of a specific programming language and/or a specific software tool
-    %
-    \begin{itemize}
-      \item these constraints should be adequately justified by political / economic / administrative reasons\ldots{}
-      \item \ldots{} otherwise, implementation choices should emerge \emph{as  a consequence of} design
-    \end{itemize}
-  \end{itemize}
-
-  \item If there are domain-specific terms, these should be explained in a glossary
-  
-  \item Each requirement must have its own \textbf{acceptance criterion}
-  %
-  \begin{itemize}
-    \item these will be important for the validation phase
-  \end{itemize}
+      \item Performance:
+        The system must support real-time multiplayer gameplay and chat, with low latency and high concurrency.
+      \item Usability:
+        The system must provide a lightweight, user-friendly interface for simple interaction.
+      \item Maintainability: 
+        Code must be modular and documented to make extensions and changes easy.
+   \end{enumerate}
+  \item \textbf{Implementation}:
+    \begin{enumerate}
+      \item System Architecture:  
+      The system will use a hybrid architecture with a central server for the authoritative game state 
+      and P2P communication between clients, chosen to ensure consistent gameplay and efficient performance.
+      \item Programming Language:  
+      The project will use Python (version 3.0 or higher), 
+      selected for its fast development, extensive libraries, portability, and alignment with the course material.
+      \item Software Tools:  
+      The project will use Poetry for dependency management and packaging, 
+      as it simplifies setup and ensures reliable, reproducible environments.
+    \end{enumerate}
 \end{itemize}
 
 \subsection{Relevant Distributed System Features}
