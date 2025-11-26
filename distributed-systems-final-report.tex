@@ -106,7 +106,7 @@ This section details the functional and non-functional requirements for the "Nom
         The system must ensure automatic recovery from disconnections and crashes.
         \begin{itemize}
           \item Server Recovery:
-            must include persistent game state storage and automatic state restoration after crashes.
+            must preserve and restore the in-session game state in case of temporary failures.
           \item Client Recovery:
             must support automatic reconnection to the server, re-establishment of P2P connections, 
             and local state caching for seamless recovery.
@@ -212,32 +212,42 @@ This section details the functional and non-functional requirements for the "Nom
 
 \section{Design}\label{design}
 
-This chapter explains the design strategies used to meet the requirments identified in the analysis phase.
-The design is presented focusing on architectural patterns and structural decisions that address the distribuited system challenges inherent in real-time multiplayer gameplay.
-
-All the design choices are motivated by the requirments and distribuited system features identified in sections \cref{requirements} and \cref{ds-features},
-particularly emphasizing fault tollerance, state consistency, and real-time interaction. 
+This chapter explains the design strategies used to meet the requirements identified in the analysis phase,
+particularly emphasizing fault tolerance, state consistency, and real-time interaction. 
 
 \subsection{Architecture}\label{architecture}
 
 The system adopts a \textbf{hybrid architecture} combining client-server and peer-to-peer (P2P) communication models.
 
-This choice is motivated by the need to balance the strengths of both architectural styles to address specific game requirements:
 \begin{itemize}
-  \item Client-Server for authoritative state: The server maintains the authoritative game state, manages round progrssion, enforces rules, and coordinates timing.
-    This centralized control ensures consistency and prevents cheating, which is critical for fair gameplay.
-  \item Peer-to-peer for collaborative validation: During the voting phase, clients communicate directly with each other to exchange votes and chat messagges.
-    This P2P layer reduces server load, decreases latency for real-time interactions, and distributes the communication load accross participants.
+  \item \textbf{Client-Server:} 
+  The server acts as the central authority. 
+  It manages the game session, enforces the timer, and performs the initial check on answers 
+  (verifying the starting letter). 
+  Finally, it collects the results to update the global score.
+
+  \item \textbf{Peer-to-Peer:} 
+  Clients communicate directly during the voting phase to validate the content of the answers and to exchange chat messages. 
+  This allows players to reach a consensus without passing every message through the server.
 \end{itemize}
 
-Alternative architectures considered:
+This division of labor improves efficiency. 
+The server is treated as a statekeeper and does not need to process high-frequency traffic like chat or voting debates. Instead, it only receives the final outcome of the round.
+Additionally, this approach increases resilience: since voting happens between peers, the interaction remains smooth even if the connection to the central server experiences temporary latency.
+
+\subsubsection*{Alternative Architectures Considered}
+
 \begin{itemize}
-  \item A pure client-server architecture was evaluated, where all communication flows through the central server. 
-    This was rejected because it would create a bottleneck during the voting phase when all clients simultaneously send 
-    and receive votes, significantly increasing latency and server load.
-  \item A pure P2P architecture with distributed consensus was also considered. 
-    However, this would introduce excessive complexity for managing consistent game state across all nodes and would make it difficult 
-    to enforce timing constraints and prevent cheating.
+  \item Pure Client-Server:
+  A pure client-server architecture was evaluated, where all communication flows through the central server. 
+  This was rejected to avoid a total dependency on the central node. 
+  In a pure C/S model, a temporary server failure would interrupt all interactions, including chat.
+  The hybrid approach allows social interaction to persist during server glitches.
+  \item Pure Peer-to-Peer (P2P):
+  A pure P2P architecture with distributed consensus was also considered. 
+  However, this was rejected due to the complexity of maintaining a consistent global state 
+  (e.g., scores and timers) without a central authority. 
+  A fully decentralized model would make it significantly harder to synchronize rounds and prevent cheating.
 \end{itemize}
 
 \subsection{Infrastructure}\label{infrastructure}
