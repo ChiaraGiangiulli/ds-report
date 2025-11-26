@@ -212,26 +212,32 @@ This section details the functional and non-functional requirements for the "Nom
 
 \section{Design}\label{design}
 
-This chapter explains the strategies used to meet the requirements identified in the analysis. 
-%
-Ideally, the design should be the same, regardless of the technological choices made during the implementation phase.
+This chapter explains the design strategies used to meet the requirments identified in the analysis phase.
+The design is presented focusing on architectural patterns and structural decisions that address the distribuited system challenges inherent in real-time multiplayer gameplay.
 
-\begin{quote}
-You can re-arrange the sections as you prefer, but all the sections must be present in the end
-\end{quote}
-
-\noindent
-\textbf{Important:} try to motivate your design choices in relation to the requirements and features identified 
-in \cref{requirements} and \cref{ds-features}.
+All the design choices are motivated by the requirments and distribuited system features identified in sections \cref{requirements} and \cref{ds-features},
+particularly emphasizing fault tollerance, state consistency, and real-time interaction. 
 
 \subsection{Architecture}\label{architecture}
 
+The system adopts a \textbf{hybrid architecture} combining client-server and peer-to-peer (P2P) communication models.
+
+This choice is motivated by the need to balance the strengths of both architectural styles to address specific game requirements:
 \begin{itemize}
-  \item Which architectural style?
-  %
-  \begin{itemize}
-    \item why?
-  \end{itemize}
+  \item Client-Server for authoritative state: The server maintains the authoritative game state, manages round progrssion, enforces rules, and coordinates timing.
+    This centralized control ensures consistency and prevents cheating, which is critical for fair gameplay.
+  \item Peer-to-peer for collaborative validation: During the voting phase, clients communicate directly with each other to exchange votes and chat messagges.
+    This P2P layer reduces server load, decreases latency for real-time interactions, and distributes the communication load accross participants.
+\end{itemize}
+
+Alternative architectures considered:
+\begin{itemize}
+  \item A pure client-server architecture was evaluated, where all communication flows through the central server. 
+    This was rejected because it would create a bottleneck during the voting phase when all clients simultaneously send 
+    and receive votes, significantly increasing latency and server load.
+  \item A pure P2P architecture with distributed consensus was also considered. 
+    However, this would introduce excessive complexity for managing consistent game state across all nodes and would make it difficult 
+    to enforce timing constraints and prevent cheating.
 \end{itemize}
 
 \subsection{Infrastructure}\label{infrastructure}
