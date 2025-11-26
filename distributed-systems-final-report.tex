@@ -261,36 +261,40 @@ Additionally, this approach increases resilience: since voting happens between p
 
 \subsection{Infrastructure}\label{infrastructure}
 
+Given the project scope and the hybrid architecture, the infrastructure is designed to be lightweight.
+
+\subsubsection*{Infrastructural Components}
+The system relies on a minimal set of components to reduce deployment complexity:
+
 \begin{itemize}
-  \item are there \emph{infrastructural components} that need to be introduced? \emph{how many}?
-  %
-  \begin{itemize}
-    \item e.g.~\emph{clients}, \emph{servers}, \emph{load balancers},
-    \emph{caches}, \emph{databases}, \emph{message brokers},
-    \emph{queues}, \emph{workers}, \emph{proxies}, \emph{firewalls},
-    \emph{CDNs}, \emph{etc.}
-  \end{itemize}
-
-  \item how do components \emph{distribute} over the network? \emph{where}?
-  %
-  \begin{itemize}
-    \item e.g.~do servers / brokers / databases / etc. sit on the same
-    machine? on the same network? on the same datacenter? on the same
-    continent?
-  \end{itemize}
-
-  \item how do components \emph{find} each other?
-  %
-  \begin{itemize}
-    \item how to \emph{name} components?
-    \item e.g.~DNS, \emph{service discovery}, \emph{load balancing},
-    \emph{etc.}
-  \end{itemize}
+    \item \textbf{Central Server Node (1 instance):} 
+    A single Python process hosting the game logic and session management. 
+    Instead of a heavy external database, it uses in-memory storage for real-time game state, 
+    backed by a local file-based persistence mechanism to handle crash recovery.
+    
+    \item \textbf{Client Nodes ($N$ instances):} 
+    The players' machines running the client application. 
+    Each client acts as a peer in the network, capable of acting as both a sender and receiver for chat and voting messages.
 \end{itemize}
 
-\begin{quote}
-Component diagrams are welcome here
-\end{quote}
+\subsubsection*{Network Distribution}
+The components are distributed over a logical LAN.
+\begin{itemize}
+    \item The Server and Clients communicate via standard TCP/IP sockets.
+    \item To bypass complex NAT traversal and firewall configuration issues, typical of P2P systems over the public Internet, 
+    the system assumes that all nodes are reachable within the same network segment or connected via a VPN.
+\end{itemize}
+
+\subsubsection*{Service Discovery}
+Since there is no static registry for the dynamic client IPs, the system implements a centralized discovery mechanism:
+
+\begin{itemize}
+    \item \textbf{Server Discovery:} Clients identify the server via a known endpoint provided at startup configuration.
+    \item \textbf{Peer Discovery:} The Central Server acts as a dynamic registry. 
+    Upon joining the lobby, each client registers its listening socket (IP:Port) with the server. 
+    When the round starts, the server broadcasts the \textit{peer map} (a list mapping usernames to their respective addresses) to all participants, 
+    enabling them to establish direct P2P connections.
+\end{itemize}
 
 \subsection{Modelling}\label{modelling}
 
