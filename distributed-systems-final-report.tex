@@ -4,6 +4,7 @@
 \usepackage{url}
 \usepackage{natbib}
 \usepackage{graphicx}
+\usepackage{float}
 \usepackage{cleveref} % this must be the last package to be loaded
 
 \newcommand{\emailaddr}[1]{\href{mailto:#1}{\texttt{#1}}}
@@ -249,6 +250,14 @@ Additionally, this approach increases resilience: since voting happens between p
   (e.g., scores and timers) without a central authority. 
   A fully decentralized model would make it significantly harder to synchronize rounds and prevent cheating.
 \end{itemize}
+
+\begin{figure}[H]
+  \begin{center}
+      \includegraphics[width=0.75\textwidth]{figures/architecture.png}
+      \caption[Architecture]{Architecture diagram (made with \cite{lucidchart})}
+      \label{fig:arch_diagram}
+  \end{center}
+\end{figure}
 
 \subsection{Infrastructure}\label{infrastructure}
 
