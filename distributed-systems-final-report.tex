@@ -298,42 +298,74 @@ Since there is no static registry for the dynamic client IPs, the system impleme
 
 \subsection{Modelling}\label{modelling}
 
+The system domain is modeled around the concept of a synchronized game session 
+where state ownership is distributed according to the hybrid architecture.
+
+\subsubsection*{Domain Entities and Infrastructure Mapping}
+
 \begin{itemize}
-  \item which \textbf{domain entities} are there?
-  %
-  \begin{itemize}
-    \item e.g.~\emph{users}, \emph{products}, \emph{orders}, \emph{etc.}
-  \end{itemize}
-  
-  \item how do \emph{domain entities} \textbf{map to} \emph{infrastructural components}?
-  %
-  \begin{itemize}
-    \item e.g.~state of a video game on central server, while inputs/representations on clients
-    \item e.g.~where to store messages in an IM app? for how long?
-  \end{itemize}
+    \item \textbf{Game Session:} 
+    The core entity representing the match.
+    It resides in the Server's memory and contains the list of connected Users,
+    the configuration (target score, chosen categories), and the global status.
+    
+    \item \textbf{Round:} 
+    Represents the current turn.
+    \begin{itemize}
+        \item \textit{Server:} stores the authoritative data: the chosen letter, the start/end timestamps, and the collection of submitted answers.
+        \item \textit{Client:} maintains a local replica of the round data to drive the UI.
+    \end{itemize}
 
-  \item which \textbf{domain events} are there?
-  %
-  \begin{itemize}
-    \item e.g.~\emph{user registered}, \emph{product added to cart}, \emph{order placed}, \emph{etc.}
-  \end{itemize}
-  
-  \item which sorts of \textbf{messages} are exchanged?
-  %
-  \begin{itemize}
-    \item e.g.~\emph{commands}, \emph{events}, \emph{queries}, \emph{etc.}
-  \end{itemize}
+    \item \textbf{Vote:} 
+    Represents a judgment (valid/invalid) cast by Peer A on Peer B's answer. 
+    These are exchanged P2P. 
+    The Server only receives the aggregated outcome to compute the score.
 
-  \item what information does the \textbf{state} of the system comprehend
-  %
-  \begin{itemize}
-    \item e.g.~\emph{users' data}, \emph{products' data}, \emph{orders' data}, \emph{etc.}
-  \end{itemize}
+    \item \textbf{Chat Message:}
+    Entities existing only in the clients' volatile memory and UI buffers. 
+    The server does not store chat history.
+
 \end{itemize}
 
-\begin{quote}
-Class diagram are welcome here
-\end{quote}
+\subsubsection*{System State}
+The state of the system is divided into:
+\begin{itemize}
+    \item \textbf{Global Authoritative State (Server):} 
+    Includes the registry of active players $(ID, IP, Port)$, current scores
+    and the canonical state of the game flow. 
+    This state is periodically checkpointed to a local file for crash recovery.
+    
+    \item \textbf{Local View State (Client):} 
+    Includes the player's own inputs, the cached answers of other players (received for voting), and the chat log. 
+    This state is reconstructed from the Server upon reconnection.
+\end{itemize}
+
+\subsubsection*{Domain Events and Messages}
+Communication relies on serialized JSON messages, categorized by interaction type:
+
+\begin{enumerate}
+    \item \textbf{Commands (Client $\rightarrow$ Server):} 
+    Messages requesting a state change.
+    \begin{itemize}
+        \item \texttt{CMD\_JOIN}: Request to enter the room.
+        \item \texttt{CMD\_SUBMIT}: Sending the filled word list for the round.
+    \end{itemize}
+
+    \item \textbf{State Updates (Server $\rightarrow$ Client):} 
+    Events broadcasting authoritative changes.
+    \begin{itemize}
+        \item \texttt{EVT\_ROUND\_START}: Contains the letter and categories.
+        \item \texttt{EVT\_PEER\_MAP}: Updates the client with the list of other peers for P2P connection.
+        \item \texttt{EVT\_SCORE\_UPDATE}: Broadcasts the new leaderboard after a round.
+    \end{itemize}
+
+    \item \textbf{Peer Interactions (P2P Client $\leftrightarrow$ Client):} 
+    Direct messages for social and validation logic.
+    \begin{itemize}
+        \item \texttt{MSG\_CHAT}: A text message for the room.
+        \item \texttt{MSG\_VOTE}: A payload containing \{target\_user, category, approval\_boolean\}.
+    \end{itemize}
+\end{enumerate}
 
 \subsection{Interaction}\label{interaction}
 
