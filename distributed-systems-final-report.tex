@@ -428,6 +428,13 @@ The interaction evolves through the game stages as follows:
     At the end of the timer, 
     Clients send their answers to the Server via a \texttt{CMD\_SUBMIT} message. 
     The Server performs the syntactic check.
+    \begin{figure}[H]
+      \begin{center}
+          \includegraphics[width=0.6\textwidth]{figures/round_sequence.png}
+          \caption[Game Round Sequence]{Round Sequence diagram (made with \cite{lucidchart})}
+          \label{fig:round_sequence}
+      \end{center}
+    \end{figure}
 
     \item \textbf{Voting \& Chat (Horizontal)}
     The Server signals the start of the voting phase.
@@ -446,6 +453,14 @@ The interaction evolves through the game stages as follows:
     The Server aggregates these results, resolves any conflicts 
     (e.g., majority rule), calculates the points, 
     and broadcasts the updated leaderboard.
+    \begin{figure}[H]
+      \begin{center}
+          \includegraphics[width=0.6\textwidth]{figures/consensus_scoring_sequence.png}
+          \caption[Consensus and Scoring Sequence]{Consensus - Scoring Sequence diagram (made with \cite{lucidchart})}
+          \label{fig:consensus_scoring_sequence}
+      \end{center}
+    \end{figure}
+
 \end{enumerate}
 
 \subsection{Behaviour}\label{behaviour}
