@@ -375,16 +375,71 @@ Communication relies on serialized JSON messages, categorized by interaction typ
   \end{center}
 \end{figure}
 
-  \subsection{Interaction}\label{interaction}
+\subsection{Interaction}\label{interaction}
+
+The system employs distinct interaction patterns depending on the game phase, 
+leveraging the hybrid architecture to optimize network traffic and latency. 
+Communication is asynchronous and message-driven, 
+using TCP sockets exchanging JSON-encoded payloads.
+
+\subsubsection*{Interaction Patterns}
 
 \begin{itemize}
-  \item how do components \emph{communicate}? \emph{when}? \emph{what}?
-  \item \emph{which} \textbf{interaction patterns} do they enact?
+    \item \textbf{Client-Server:} 
+    Used for state changes. 
+    \begin{itemize}
+        \item \textit{Request-Response:} Clients send specific commands (e.g., \texttt{CMD\_JOIN}) and wait for an acknowledgment.
+        \item \textit{Broadcast (Publisher/Subsriber):} The server pushes state updates 
+        
+        (e.g., \texttt{ROUND\_START}) to all connected sockets simultaneously.
+    \end{itemize}
+
+    \item \textbf{Peer-to-Peer (Mesh Flood):} 
+    used for high-frequency data.
+    
+    When a user types a chat message or casts a vote, the client iterates through its \textit{Peer Map} 
+    and sends the message directly to all other active clients. 
+    
+    Unlike the server broadcast, this communication happens directly between nodes (1-hop latency) without passing through the central bottleneck.
 \end{itemize}
 
-\begin{quote}
-Sequence diagrams are welcome here
-\end{quote}
+\subsubsection*{Communication Flow}
+
+The interaction evolves through the game stages as follows:
+
+\begin{enumerate}
+    \item \textbf{Handshake \& Discovery (Vertical)}
+    Clients connect to the Server. 
+    The Server registers them and, upon game start, 
+    distributes the \textit{Peer Map} (IPs and Ports of all players) 
+    to every client. 
+    This bootstrapping phase enables the subsequent P2P layer.
+
+    \item \textbf{The Round (Vertical)}
+    The Server broadcasts the letters and categories. 
+    Clients play locally. 
+    At the end of the timer, 
+    Clients send their answers to the Server via a \texttt{CMD\_SUBMIT} message. 
+    The Server performs the syntactic check.
+
+    \item \textbf{Voting \& Chat (Horizontal)}
+    The Server signals the start of the voting phase.
+    Now, clients switch to P2P mode:
+    \begin{itemize}
+        \item \textit{Chat:} a message from a Client is sent directly to others Clients.
+        \item \textit{Voting:} 
+        during the evaluation phase, each client reviews the answers of all other participants. 
+        When Client $A$ casts a judgment on an answer belonging to Client $B$, a \texttt{VOTE} packet is immediately dispatched to \textbf{all connected peers}. 
+        This ensures that not only does $B$ receive the feedback, but third-party observers can also update their local UI to reflect the current voting consensus in real time.
+    \end{itemize}
+
+    \item \textbf{Consensus \& Scoring (Vertical)}
+    Once the voting timer expires or or an agreement is reached, 
+    the Clients submit the final validation results to the Server. 
+    The Server aggregates these results, resolves any conflicts 
+    (e.g., majority rule), calculates the points, 
+    and broadcasts the updated leaderboard.
+\end{enumerate}
 
 \subsection{Behaviour}\label{behaviour}
 
