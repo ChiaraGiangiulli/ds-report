@@ -418,7 +418,7 @@ The interaction evolves through the game stages as follows:
       \begin{center}
           \includegraphics[width=0.6\textwidth]{figures/handshake_sequence.png}
           \caption[Handshake Sequence]{Handshake Sequence diagram (made with \cite{lucidchart})}
-          \label{fig:handshake}
+          \label{fig:handshake_sequence}
       \end{center}
     \end{figure}
 
@@ -446,6 +446,13 @@ The interaction evolves through the game stages as follows:
         When Client $A$ casts a judgment on an answer belonging to Client $B$, a \texttt{VOTE} packet is immediately dispatched to \textbf{all connected peers}. 
         This ensures that not only does $B$ receive the feedback, but third-party observers can also update their local UI to reflect the current voting consensus in real time.
     \end{itemize}
+    \begin{figure}[H]
+      \begin{center}
+          \includegraphics[width=0.6\textwidth]{figures/voting_sequence.png}
+          \caption[Chat and Voting Sequence]{Chat and Voting Sequence diagram (made with \cite{lucidchart})}
+          \label{fig:voting_chat_sequence}
+      \end{center}
+    \end{figure}
 
     \item \textbf{Consensus \& Scoring (Vertical)}
     Once the voting timer expires or an agreement is reached, 
