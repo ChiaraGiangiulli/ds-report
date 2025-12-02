@@ -414,8 +414,15 @@ The interaction evolves through the game stages as follows:
     distributes the \textit{Peer Map} (IPs and Ports of all players) 
     to every client. 
     This bootstrapping phase enables the subsequent P2P layer.
+    \begin{figure}[H]
+      \begin{center}
+          \includegraphics[width=0.6\textwidth]{figures/handshake_sequence.png}
+          \caption[Handshake Sequence]{Handshake Sequence diagram (made with \cite{lucidchart})}
+          \label{fig:handshake}
+      \end{center}
+    \end{figure}
 
-    \item \textbf{The Round (Vertical)}
+    \item \textbf{Round (Vertical)}
     The Server broadcasts the letters and categories. 
     Clients play locally. 
     At the end of the timer, 
@@ -434,7 +441,7 @@ The interaction evolves through the game stages as follows:
     \end{itemize}
 
     \item \textbf{Consensus \& Scoring (Vertical)}
-    Once the voting timer expires or or an agreement is reached, 
+    Once the voting timer expires or an agreement is reached, 
     the Clients submit the final validation results to the Server. 
     The Server aggregates these results, resolves any conflicts 
     (e.g., majority rule), calculates the points, 
