@@ -472,18 +472,57 @@ The interaction evolves through the game stages as follows:
 
 \subsection{Behaviour}\label{behaviour}
 
-\begin{itemize}
-  \item how does \emph{each} component \textbf{behave} individually (e.g.~in \emph{response} to \emph{events} or messages)?
-  \begin{itemize}
-    \item some components may be \emph{stateful}, others \emph{stateless}
-  \end{itemize}
+The system behavior is modeled as an event-driven architecture 
+where the Server acts as the central \textbf{Finite State Machine (FSM)} driving the game flow, 
+while Clients behave as reactive consumers synchronized to the server's state transitions.
 
-  \item which components are in charge of updating the \textbf{state} of the system? \emph{when}? \emph{how}?
+\subsubsection*{Server Finite State Machine}
+The Server behavior is defined by five distinct states. 
+Transitions are triggered by timers or completion events.
+
+\begin{enumerate}
+    \item \texttt{LOBBY}: 
+    The initial idle state. 
+    The server accepts \texttt{CMD\_JOIN} requests and maintains a list of connected peers. 
+    It waits for a manual "Start Game" command.
+    
+    \item \texttt{WAITING\_INPUT}: 
+    The active gameplay phase. 
+    The server has broadcasted the categories/letter and started the round timer. 
+    It listens for \texttt{CMD\_SUBMIT} messages containing the players' answers. 
+    This phase ends when the timer expires or all active players have submitted.
+    
+    \item \texttt{VOTING}: 
+    The distributed validation phase. 
+    The server broadcasts the aggregated answers and instructs clients to switch to P2P mode. 
+    During this state, the server is logically "waiting" for the consensus result.
+    This phase ends when the voting timer expires or all clients signal completion.
+    
+    \item \texttt{SCORING}: 
+    A transient processing state. The server aggregates the validation data received from clients, calculates points based on the rules, and updates the global leaderboard.
+    It automatically moves to \texttt{GAME\_OVER} if the target score is reached, 
+    otherwise loops back to \texttt{WAITING\_INPUT} for a new round.
+    
+    \item \texttt{GAME\_OVER}: 
+    The terminal state. 
+    The final scoreboard is displayed.
+    The session remains open for a defined period before resetting the lobby or allowing a clean disconnection.
+\end{enumerate}
+
+\subsubsection*{Client Reactive Behaviour}
+The Client's behavior changes based on the current global state broadcast by the server:
+\begin{itemize}
+    \item During \texttt{WAITING\_INPUT}, it acts as a producer, capturing user text and sending it to the server.
+    \item During \texttt{VOTING}, it switches role to a peer-node, opening direct connections to other clients to exchange validation messages and chat.
 \end{itemize}
 
-\begin{quote}
-State diagrams are welcome here
-\end{quote}
+\begin{figure}[H]
+  \begin{center}
+      \includegraphics[width=0.6\textwidth]{figures/states_diagram.png}
+      \caption[State Diagram]{States Diagram (made with \cite{lucidchart})}
+      \label{fig:states}
+  \end{center}
+\end{figure}
 
 \subsection{Data and Consistency Issues}\label{data-and-consistency-issues}
 
