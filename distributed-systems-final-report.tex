@@ -267,14 +267,18 @@ Given the project scope and the hybrid architecture, the infrastructure is desig
 The system relies on a minimal set of components to reduce deployment complexity:
 
 \begin{itemize}
-    \item \textbf{Central Server Node (1 instance):} 
-    A single Python process hosting the game logic and session management. 
-    Instead of a heavy external database, it uses in-memory storage for real-time game state, 
-    backed by a local file-based persistence mechanism to handle crash recovery.
+    \item \textbf{Server Cluster (2 instances):} 
+    Two Python processes configured in an Active-Passive architecture.
+    Only the primary node actively hosts the game logic and in-memory session. 
+    Instead of a heavy external database, 
+    persistence is managed via a shared file-system mechanism, 
+    allowing the backup node to access the latest game state and 
+    recover the session immediately in case of a crash.
     
     \item \textbf{Client Nodes ($N$ instances):} 
     The players' machines running the client application. 
-    Each client acts as a peer in the network, capable of acting as both a sender and receiver for chat and voting messages.
+    Each client acts as a peer in the network, 
+    capable of acting as both a sender and receiver for chat and voting messages.
 \end{itemize}
 
 \subsubsection*{Network Distribution}
@@ -524,103 +528,116 @@ The Client's behavior changes based on the current global state broadcast by the
   \end{center}
 \end{figure}
 
-\subsection{Data and Consistency Issues}\label{data-and-consistency-issues}
-
-\begin{itemize}
-  \item Is there any data that needs to be stored?
-  %
-  \begin{itemize}
-    \item \emph{what} data? \emph{where}? \emph{why}?
-  \end{itemize}
-  
-  \item how should \emph{persistent data} be \textbf{stored}?
-  %
-  \begin{itemize}
-    \item e.g.~relations, documents, key-value, graph, etc.
-    \item why?
-  \end{itemize}
-  
-  \item Which components perform queries on the database?
-  %
-  \begin{itemize}
-    \item \emph{when}? \emph{which} queries? \emph{why}?
-    \item concurrent read? concurrent write? why?
-  \end{itemize}
-  
-  \item Is there any data that needs to be shared between components?
-  %
-  \begin{itemize}
-    \item \emph{why}? \emph{what} data?
-  \end{itemize}
-\end{itemize}
-
 \subsection{Fault-Tolerance}\label{fault-tolerance}
 
+To ensure the continuity of the game session despite failures, the system implements a redundancy strategy covering both server availability and data persistence.
+
+\subsubsection*{Server-Side Recovery}
+The system adopts an \textbf{Active-Passive} replication model based on shared storage:
+    two instances of the server are launched simultaneously at startup.
+    The logic relies on a "Heartbeat Lock" mechanism located in a shared folder:
+    \begin{enumerate}
+        \item The primary server updates the lock's timestamp every second to signal that it's alive.
+        \item The secondary server enters a monitoring loop, checking the timestamp of the lock file.
+    \end{enumerate}
+    If the primary crashes, it stops updating the timestamp. 
+    The backup detects that the file is not updated, assumes the primary is dead, 
+    and automatically promotes itself to active status, 
+    ready to accept connections and read the JSON file in the shared folder.
+
+\subsubsection*{Client-Side Recovery}
+
+Clients are initialized with a configuration file containing the addresses of both servers.
+
+If the connection to the current server drops, the client automatically tries to connect to the next IP in the list. 
+It treats the list as a continuous loop, ensuring that if the original primary comes back online 
+and the new primary fails later, the client can successfully reconnect to the original node.
+Upon reconnecting, the client sends a handshake with its username. 
+The new server uses this ID to link the new connection to the saved player data, 
+allowing the user to continue playing as before.
+
+When a client socket disconnects unexpectedly, 
+the server does not immediately evict the player from the match, 
+it marks the user as disconnected but keeps their object (score, username) 
+in memory for a configurable period.
+    
+If the user restarts the client application
+and attempts to join with the same username within the period, 
+the server detects the match.
+    
+Upon successful re-binding, the server sends the current game state to the client, allowing the user to
+resume playing exactly where they left off.
+
+\subsection{Data and Consistency Issues}\label{data-and-consistency-issues}
+
+Given the session-based nature of the application, 
+the data management strategy prioritizes low-latency access (in-memory) 
+over long-term archival storage.
+
+\subsubsection*{Data Storage Strategy}
+
 \begin{itemize}
-  \item Is there any form of data \textbf{replication} / federation / sharing?
-  %
-  \begin{itemize}
-    \item \emph{why}? \emph{how} does it work?
-  \end{itemize}
-  
-  \item Is there any \textbf{heart-beating}, \textbf{timeout}, \textbf{retry mechanism}?
-  %
-  \begin{itemize}
-    \item \emph{why}? \emph{among} which components? \emph{how} does it work?
-  \end{itemize}
-  
-  \item Is there any form of \textbf{error handling}?
-  %
-  \begin{itemize}
-    \item \emph{what} happens when a component fails? \emph{why}? \emph{how}?
-  \end{itemize}
+    \item \textbf{Transient Data:}
+    The primary server utilizes its Random Access Memory (RAM) to store 
+    the live \texttt{GameSession} object (connected users, current scores, FSM status and active peers).
+    This choice ensures fast access times required to update scores and handle round transitions in real-time. 
+    Standard Python data structures are sufficient and performant for these data types.
+
+    \item \textbf{Persistent Data (Shared File System):}
+    To implement Fault Tolerance described in Section \ref{fault-tolerance}, 
+    the system persists state snapshots to a JSON file located on a \textbf{shared storage volume} accessible by both server nodes.
+    This file acts as the synchronization medium, allowing the backup node to load the latest valid game state immediately upon taking over.
+\end{itemize}
+
+\subsubsection*{Consistency Model}
+
+Data must be shared to maintain a synchronized view of the game. 
+The system adopts a \textbf{Hybrid Consistency Model}:
+
+\begin{itemize}
+    \item \textbf{Strong Consistency (Server-Side):}
+    The active server acts as the "Single Source of Truth".
+    Clients receive authoritative updates via broadcast events and cannot modify the global state directly.
+    Furthermore, the shared state file ensures \textit{Sequential Consistency} for the backup node,
+    guaranteeing it always loads the most recent write performed by the primary before the failure.
+
+    \item \textbf{Eventual Consistency (P2P-Side):}
+    During the voting phase, latency in propagating votes between peers is acceptable.
+    The system guarantees that the state will converge to a consistent result 
+    when the active server aggregates all votes at the end of the phase.
 \end{itemize}
 
 \subsection{Availability}\label{availability}
+The system availability strategy is designed to maintain responsiveness 
+and handle load distribution without introducing heavy middleware components.
 
-\begin{itemize}
-  \item Is there any \textbf{caching} mechanism?
-  %
-  \begin{itemize}
-    \item \emph{where}? \emph{why}?
-  \end{itemize}
-  
-  \item Is there any form of \textbf{load balancing}?
-  %
-  \begin{itemize}
-    \item \emph{where}? \emph{why}?
-  \end{itemize}
+\subsubsection*{Caching Mechanisms}
 
-  \item In case of \textbf{network partitioning}, how does the system behave?
-  %
-  \begin{itemize}
-    \item \emph{why}? \emph{how}?
-  \end{itemize}
-\end{itemize}
+Every Client node maintains a local replica of the relevant game data in its own process memory.
+This minimizes network traffic and improves UI responsiveness.
+If the server connection drops temporarily, the client retains the last known state, 
+allowing for a smooth user experience upon reconnection.
 
-\subsection{Security}\label{security}
+\subsubsection*{Load Balancing}
 
-\begin{itemize}
-  \item Is there any form of \textbf{authentication}?
-  %
-  \begin{itemize}
-    \item \emph{where}? \emph{why}?
-  \end{itemize}
+The system does not employ a dedicated hardware Load Balancer 
+because the traffic volume for a single session does not justify 
+the added latency and complexity.
 
-  \item Is there any form of \textbf{authorization}?
-  %
-  \begin{itemize}
-    \item which sort of \emph{access control}?
-    \item which sorts of users / \emph{roles}? which \emph{access rights}?
-  \end{itemize}
+The workload is distributed between the Central Server and the Client Nodes 
+via the Peer-to-Peer layer.
+Delegating the bandwidth-intensive tasks to the clients acts as a 
+logical load balancer, 
+preventing the single server instance from becoming a bottleneck 
+during the most active game phases.
 
-  \item Are \textbf{cryptographic schemas} being used?
-  %
-  \begin{itemize}
-    \item e.g.~token verification,
-    \item e.g.~data encryption, etc.
-  \end{itemize}
-\end{itemize}
+\subsubsection*{Network Partitioning Behavior}
+
+In the context of the CAP Theorem, 
+the system prioritizes Consistency over Availability in the event of a network partition.
+
+In the event of a network partition, the system prefers to pause the service 
+rather than allowing offline gameplay.
 
 \section{Implementation}\label{implementation}
 
