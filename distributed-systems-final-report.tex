@@ -352,6 +352,7 @@ Communication relies on serialized JSON messages, categorized by interaction typ
     Messages requesting a state change.
     \begin{itemize}
         \item \texttt{CMD\_JOIN}: Request to enter the room.
+        \item \texttt{CMD\_START\_GAME}: Request to start the game.
         \item \texttt{CMD\_SUBMIT}: Sending the filled word list for the round.
     \end{itemize}
 
@@ -363,7 +364,9 @@ Communication relies on serialized JSON messages, categorized by interaction typ
       \item \texttt{EVT\_PEER\_MAP}: Updates the client with the list of other peers for P2P connection.
       \item \texttt{EVT\_VOTING\_START}: Signals the beginning of the voting phase.
       \item \texttt{EVT\_SCORE\_UPDATE}: Broadcasts the new leaderboard after a round.
+      \item \texttt{EVT\_ROUND\_END}: Signals the end of a round.
       \item \texttt{EVT\_GAME\_OVER}: Announces the end of the game and the final scores.
+      \item \texttt{EVT\_ERROR}: Signals an error condition (e.g., invalid command).
     \end{itemize}
 
     \item \textbf{Peer Interactions (P2P Client $\leftrightarrow$ Client):} 
