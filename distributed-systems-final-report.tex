@@ -354,6 +354,7 @@ Communication relies on serialized JSON messages, categorized by interaction typ
         \item \texttt{CMD\_JOIN}: Request to enter the room.
         \item \texttt{CMD\_START\_GAME}: Request to start the game.
         \item \texttt{CMD\_SUBMIT}: Sending the filled word list for the round.
+        \item \texttt{CMD\_LOBBY\_ACTION}: Request to update lobby state, used to sync game settings (admin only) or register category votes (all players).
     \end{itemize}
 
     \item \textbf{State Updates (Server $\rightarrow$ Client):} 
