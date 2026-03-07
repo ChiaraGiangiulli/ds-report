@@ -267,12 +267,12 @@ Given the project scope and the hybrid architecture, the infrastructure is desig
 The system relies on a minimal set of components to reduce deployment complexity:
 
 \begin{itemize}
-    \item \textbf{Server Cluster (2 instances):} 
-    Two Python processes configured in an Active-Passive architecture.
+    \item \textbf{Server Cluster ($N$ instances):} 
+    Python processes configured in an Active-Passive architecture.
     Only the primary node actively hosts the game logic and in-memory session. 
     Instead of a heavy external database, 
     persistence is managed via a shared file-system mechanism, 
-    allowing the backup node to access the latest game state and 
+    allowing the backup nodes to access the latest game state and 
     recover the session immediately in case of a crash.
     
     \item \textbf{Client Nodes ($N$ instances):} 
@@ -540,17 +540,19 @@ The Client's behavior changes based on the current global state broadcast by the
 To ensure the continuity of the game session despite failures, the system implements a redundancy strategy covering both server availability and data persistence.
 
 \subsubsection*{Server-Side Recovery}
-The system adopts an \textbf{Active-Passive} replication model based on shared storage:
-    two instances of the server are launched simultaneously at startup.
-    The logic relies on a "Heartbeat Lock" mechanism located in a shared folder:
-    \begin{enumerate}
-        \item The primary server updates the lock's timestamp every second to signal that it's alive.
-        \item The secondary server enters a monitoring loop, checking the timestamp of the lock file.
-    \end{enumerate}
-    If the primary crashes, it stops updating the timestamp. 
-    The backup detects that the file is not updated, assumes the primary is dead, 
-    and automatically promotes itself to active status, 
-    ready to accept connections and read the JSON file in the shared folder.
+The system adopts an \textbf{Active-Passive} replication model based on shared storage. 
+Instead of relying on a static configuration, server nodes are completely autonomous 
+and auto-assign their roles upon startup. 
+The high-availability logic relies on a "Heartbeat Lock" mechanism located in a shared folder:
+\begin{enumerate}
+    \item The \textbf{primary} server continuously updates the lock's timestamp to signal that it is alive.
+    \item Any number of \textbf{backup} servers can be launched. 
+    They automatically enter a monitoring loop, periodically checking the timestamp of the lock file.
+\end{enumerate}
+If the primary crashes, it stops updating the heartbeat. 
+The backups detect the timeout, assume the primary is dead, and attempt to promote themselves to active status by binding to the game server's TCP port. 
+To prevent race conditions when multiple backups try to take over simultaneously, only the first instance that successfully binds to the port becomes the new primary. 
+The others revert to their backup monitoring loop, ensuring fault tolerance without conflicts.
 
 \subsubsection*{Client-Side Recovery}
 
