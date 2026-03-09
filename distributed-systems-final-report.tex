@@ -618,6 +618,18 @@ The system adopts a \textbf{Hybrid Consistency Model}:
     During the voting phase, latency in propagating votes between peers is acceptable.
     The system guarantees that the state will converge to a consistent result 
     when the active server aggregates all votes at the end of the phase.
+
+    \item \textbf{Voting Default Policy:}
+    During the aggregation phase, the server applies a benefit-of-the-doubt rule for answers
+    that received no votes at all. This can occur when a player disconnects during the voting 
+    phase or when the voting timer expires before all peers have cast their judgment. 
+    In such cases, rather than penalising the author of the answer for a network or timing issue 
+    outside their control, the system defaults to treating the answer as valid. 
+    This choice prioritises fairness over strict consistency: it is considered preferable 
+    to occasionally award points for a borderline answer than to silently invalidate a 
+    correct one due to an incomplete vote collection. 
+    Answers already marked as syntactically invalid during the initial server-side 
+    check are never subject to this rule — they remain invalid regardless.
 \end{itemize}
 
 \subsection{Availability}\label{availability}
