@@ -293,7 +293,12 @@ The components are distributed over a logical LAN.
 Since there is no static registry for the dynamic client IPs, the system implements a centralized discovery mechanism:
 
 \begin{itemize}
-    \item \textbf{Server Discovery:} Clients identify the server via a known endpoint provided at startup configuration.
+  \item \textbf{Server Discovery (UDP Broadcast):} The system implements a LAN discovery mechanism. 
+    Rather than relying on static IP addresses in configuration files, the system uses UDP broadcasts. 
+    When a client application starts, it listens on a predefined UDP port. 
+    The active server announces its presence (IP and TCP port) over the local network, 
+    allowing clients to dynamically discover and connect to the authoritative node.
+  \item \textbf{Server Discovery:} Clients identify the server via a known endpoint provided at startup configuration.
     \item \textbf{Peer Discovery:} The Central Server acts as a dynamic registry. 
     Upon joining the lobby, each client registers its listening socket (IP:Port) with the server. 
     When the round starts, the server broadcasts the \textit{peer map} (a list mapping usernames to their respective addresses) to all participants, 
@@ -555,12 +560,11 @@ To prevent race conditions when multiple backups try to take over simultaneously
 The others revert to their backup monitoring loop, ensuring fault tolerance without conflicts.
 
 \subsubsection*{Client-Side Recovery}
+Instead of relying on a static list of server addresses, the client features a dynamic reconnection manager integrated with the UDP discovery mechanism.
+If the connection to the current server drops, the client enters a resilient reconnection loop based on a configurable retry policy. 
+This window provides the server-side failover mechanism enough time to complete its election and for the backup node to bind to the required port. 
+Once the backup becomes the new primary, the client automatically re-establishes the connection.
 
-Clients are initialized with a configuration file containing the addresses of both servers.
-
-If the connection to the current server drops, the client automatically tries to connect to the next IP in the list. 
-It treats the list as a continuous loop, ensuring that if the original primary comes back online 
-and the new primary fails later, the client can successfully reconnect to the original node.
 Upon reconnecting, the client sends a handshake with its username. 
 The new server uses this ID to link the new connection to the saved player data, 
 allowing the user to continue playing as before.
@@ -663,38 +667,45 @@ Please report here all the implementation (technology-dependent) choices you mad
   \item which \textbf{network protocols} to use?
   %
   \begin{itemize}
-    \item e.g.~UDP, TCP, HTTP, WebSockets, gRPC, XMPP, AMQP, MQTT, etc.
+    \item TCP for game and p2p communication, UDP for discovery
   \end{itemize}
   
   \item how should \emph{in-transit data} be \textbf{represented}?
   %
   \begin{itemize}
-    \item e.g.~JSON, XML, YAML, Protocol Buffers, etc.
+    \item JSON in UTF-8 encoding
   \end{itemize}
   
   \item how should \emph{databases} be \textbf{queried}?
   %
   \begin{itemize}
-    \item e.g.~SQL, NoSQL, etc.
+    \item no DBMS, just file-based shared storage for server state persistence
   \end{itemize}
   
   \item how should components be \emph{authenticated}?
   %
   \begin{itemize}
-    \item e.g.~OAuth, JWT, etc.
+    \item no authentication, just a unique username for each player
   \end{itemize}
 
   \item how should components be \emph{authorized}?
   %
   \begin{itemize}
-    \item e.g.~RBAC, ABAC, etc.
+    \item no authorization, any player can perform any action 
+    (except for admin actions in the lobby, which are only available to the first player who joined the lobby)
   \end{itemize}
 \end{itemize}
 
 \subsection{Technological details}\label{technological-details}
 
 \begin{itemize}
-  \item any particular \emph{framework} / \emph{technology} being exploited goes here
+  \item \emph{asyncio} for asynchronous programming and concurrency
+  \item \emph{socket} for network communication
+  \item \emph{json} for message serialization
+  \item \emph{file-based shared storage} for server state persistence
+  \item \emph{Poetry} for dependency management and packaging
+  \item \emph{Tkinter} for the client UI
+  \item \emph{pytest} for automatic testing
 \end{itemize}
 
 \section{Validation}\label{validation}
