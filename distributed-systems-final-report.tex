@@ -654,133 +654,179 @@ rather than allowing offline gameplay.
 
 \section{Implementation}\label{implementation}
 
-Please report here all the implementation (technology-dependent) choices you made while implementing your design.
+This section details the concrete technological choices and protocols utilized to realize 
+the hybrid distributed architecture of the game.
 
-\begin{quote}
-  If you run out of time for this project, you may consider leaving some aspect unimplemented, 
-  and simply discuss how you would have implemented them.
-  %
-  In this case, better would be to discuss unimplemented features in \cref{future-works}.
-\end{quote}
+\paragraph{Network Protocols}
+The system relies entirely on Transport Layer protocols to minimize overhead, 
+as the application consists of native desktop clients rather than web browsers. 
+\textbf{TCP (Transmission Control Protocol)} is used for all reliable communications, 
+encompassing both the Client-Server FSM state updates and the Peer-to-Peer interactions, 
+such as chat and voting. 
+It is implemented via asynchronous streams to ensure ordered and lossless data delivery.
 
-\begin{itemize}
-  \item which \textbf{network protocols} to use?
-  %
-  \begin{itemize}
-    \item TCP for game and p2p communication, UDP for discovery
-  \end{itemize}
-  
-  \item how should \emph{in-transit data} be \textbf{represented}?
-  %
-  \begin{itemize}
-    \item JSON in UTF-8 encoding
-  \end{itemize}
-  
-  \item how should \emph{databases} be \textbf{queried}?
-  %
-  \begin{itemize}
-    \item no DBMS, just file-based shared storage for server state persistence
-  \end{itemize}
-  
-  \item how should components be \emph{authenticated}?
-  %
-  \begin{itemize}
-    \item no authentication, just a unique username for each player
-  \end{itemize}
+Conversely, \textbf{UDP (User Datagram Protocol)} is employed exclusively for the Server Discovery mechanism. 
+The active server broadcasts its presence (IP and TCP port) via UDP datagrams over the local network, 
+enabling clients to dynamically discover and connect to the authoritative node without manual IP configuration.
 
-  \item how should components be \emph{authorized}?
-  %
-  \begin{itemize}
-    \item no authorization, any player can perform any action 
-    (except for admin actions in the lobby, which are only available to the first player who joined the lobby)
-  \end{itemize}
-\end{itemize}
+\paragraph{Data Representation}
+In-transit data is represented using \textbf{JSON payloads} encoded in UTF-8. 
+These payloads are encapsulated within a custom \texttt{Message} class, which provides structured serialization to and deserialization from bytes. 
+Each message includes a specific \texttt{MessageType} enumeration to efficiently route events and commands through the system's Finite State Machine.
+
+\paragraph{State Persistence and Storage}
+The system operates without a traditional Database Management System (DBMS). 
+Instead, persistent state is achieved via a \textbf{shared file system}. 
+A dedicated \texttt{StateManager} serializes the FSM state, active players, and scores into a local JSON file (\texttt{state.json}). 
+To prevent data corruption during sudden crashes, the system utilizes an atomic file replacement strategy, 
+writing data to a temporary \texttt{.tmp} file before safely renaming it. 
+Similarly, the Active-Passive replication mechanism relies on a shared \texttt{heartbeat.json} file to monitor server health.
+
+\paragraph{Authentication and Authorization}
+The system prioritizes ease of access and does not employ strict authentication protocols. 
+Players are authenticated upon establishing a TCP connection by providing a unique username in their initial \texttt{CMD\_JOIN} request. 
+The server enforces uniqueness and tracks sessions based on this string identifier.
+Authorization is managed via a lightweight \textbf{Role-Based Access Control (RBAC)}. 
+The first user to join an empty lobby is automatically granted the \texttt{admin} role. 
+Only the admin is authorized to modify lobby settings and trigger the game start. 
+If the admin disconnects, the server ensures continuity by promoting the next connected player to the admin role using a FIFO policy.
 
 \subsection{Technological details}\label{technological-details}
 
+The implementation heavily leverages the Python standard library, alongside specific development tools, to maintain a lightweight, concurrent, and robust architecture:
+
 \begin{itemize}
-  \item \emph{asyncio} for asynchronous programming and concurrency
-  \item \emph{socket} for network communication
-  \item \emph{json} for message serialization
-  \item \emph{file-based shared storage} for server state persistence
-  \item \emph{Poetry} for dependency management and packaging
-  \item \emph{Tkinter} for the client UI
-  \item \emph{pytest} for automatic testing
+  \item \textbf{\texttt{asyncio}:} the core framework driving the system's concurrency model. 
+  It manages multiple TCP client connections concurrently on a single thread, orchestrates non-blocking FSM timers for round and voting durations, 
+  and handles the client-side resilient reconnection loop without freezing the user experience.
+  \item \textbf{\texttt{socket}:} utilized directly for the low-level UDP broadcast implementation, 
+  allowing the server to announce its listening port and clients to asynchronously scan for discovery datagrams.
+  \item \textbf{\texttt{json} \& \texttt{os}:} standard libraries used to serialize complex state dictionaries into UTF-8 files and manage atomic file operations for crash-resilient shared storage.
+  \item \textbf{\texttt{Tkinter}:} provides a lightweight, cross-platform graphical user interface. 
+  Because \texttt{Tkinter} requires exclusive control over the main thread, the \texttt{asyncio} event loop is offloaded to a background daemon thread. 
+  Synchronization between the asynchronous network layer and the UI is handled safely via the \texttt{root.after()} method.
+  \item \textbf{Poetry:} adopted for modern dependency management and environment isolation, ensuring reproducible builds across different development machines.
+  \item \textbf{\texttt{pytest}:} utilized as the framework for unit and integration testing, ensuring the reliability of FSM transitions and state recovery mechanics.
 \end{itemize}
 
 \section{Validation}\label{validation}
 
+To ensure the reliability, consistency, and fault tolerance of the distributed system, validation was performed using a combination of automated unit/integration testing 
+and manual acceptance testing.
+
 \subsection{Automatic Testing}\label{automatic-testing}
 
-\begin{itemize}
-  \item how were individual components \textbf{\emph{unit}-test}ed?
-  
-  \item how was communication, interaction, and / or integration among components tested?
-  
-  \item how to \textbf{\emph{end-to-end}-test} the system?
-  %
-  \begin{itemize}
-    \item e.g.~production vs.~test environment
-  \end{itemize}
+Automated tests were developed using the Python \texttt{unittest} framework, heavily leveraging \texttt{IsolatedAsyncioTestCase} to handle the asynchronous nature of the network and game loops. 
+Test doubles (\texttt{MagicMock} and \texttt{AsyncMock}) were extensively used to isolate components.
 
-  \item for each test specify:
-  %
-  \begin{itemize}
-    \item rationale of individual tests
-    \item how were the test automated
-    \item how to run them
-    \item which requirement they are testing, if any
-  \end{itemize}
+\paragraph{Unit Testing}
+
+Individual components were tested in isolation to verify their core logic:
+\begin{itemize}
+    \item \textbf{Game Logic:} the \texttt{RoundManager} was tested to ensure correct letter generation and timer expiration. 
+    The \texttt{GameSession} FSM was validated to ensure strict transitions (e.g., from \texttt{WAITING\_INPUT} to \texttt{VOTING} only when all answers are received or the timer expires) and correct point calculation.
+    \item \textbf{Server Management:} the \texttt{GameServer} component was tested to verify client tracking, unique username enforcement, and the FIFO election of the lobby admin.
+    \item \textbf{State Persistence:} the \texttt{StateManager} was tested by mocking a game session and asserting that the JSON serialization and deserialization accurately reconstruct the game state 
+    (scores, active categories, remaining timers).
+    \item \textbf{Data Representation:} the custom \texttt{Message} class was tested to ensure correct instantiation of properties (sender, message type, payload) and accurate JSON serialization for network transit.
 \end{itemize}
 
-\begin{quote}
-recall that \emph{deployment} \textbf{automation} is commonly used to \emph{test} the system in \emph{production-like} environment
-\end{quote}
+\paragraph{Integration and Interaction Testing}
 
-\begin{quote}
-recall to test corner cases (crashes, errors, etc.)
-\end{quote}
+The interactions between the networking layer and the application logic were tested to ensure seamless communication:
+\begin{itemize}
+    \item \textbf{Network \& P2P:} the \texttt{NetworkHandler} tests validated the proper establishment of TCP sockets 
+    and the successful dispatching of JSON-encoded \texttt{Message} objects. 
+    The \texttt{ClientChat} tests verified that Peer-to-Peer messages are correctly broadcasted only to connected peers using the dynamic Peer Map, 
+    bypassing the central server.
+    \item \textbf{Fault Tolerance:} the \texttt{ReconnectionManager} was strictly tested against various edge cases, including parsing malformed configuration files, 
+    executing circular server rotation, and respecting retry delays during connection exhaustion.
+    \item \textbf{GUI Integration:} the Tkinter user interface was tested headlessly. 
+    Mocking the \texttt{ClientController}, the tests simulated user inputs in the \texttt{LoginScreen} and \texttt{LobbyScreen} to verify that the correct network 
+    callbacks were triggered upon button clicks.
+\end{itemize}
 
-\subsection{Acceptance test}\label{acceptance-test}
+\paragraph{Test Automation}
+The entire test suite can be executed via the command line using \texttt{poetry run pytest}. 
+This provides immediate feedback during development and ensures that new features do not break existing FSM or network constraints.
+
+\subsection{Acceptance Test}\label{acceptance-test}
+
+While unit tests cover the programmatic logic, the distributed nature of the system required manual End-to-End (E2E) testing, 
+particularly to validate corner cases and real-world network conditions.
 
 \begin{itemize}
-  \item did you perform any \emph{manual} testing?
-  %
-  \begin{itemize}
-    \item what did you test?
-    \item why wasn't it automatic?
-  \end{itemize}
+    \item \textbf{LAN Discovery and Multiplayer Flow:} we performed manual testing by connecting multiple physical PCs to the same Wi-Fi network. 
+    This confirmed that UDP discovery packets were correctly dispatched and caught by the clients without any hardcoded IPs, 
+    and successfully validated the entire lifecycle of the game (lobby, rounds, chat, and scoring) among real distributed nodes.
+    \item \textbf{Active-Passive Failover:} tested by running multiple server instances (Primary and Backup). 
+    The Primary process was forcefully killed to simulate a sudden crash. We manually verified that the Backup server detected the missing heartbeat and bound to the TCP port, 
+    and that clients connected via the Wi-Fi network seamlessly reconnected without losing their session state or scores.
+    \item \textbf{P2P Voting and Chat Latency:} manual testing with multiple computers on the same Wi-Fi network ensured that the asynchronous P2P broadcasting updated the UI of all observing peers in real-time, 
+    confirming the responsiveness of the horizontal communication layer.
 \end{itemize}
 
 \section{Deployment}\label{deployment}
 
-\begin{itemize}
-  \item should one install your software from scratch, how to do it?
-  %
-  \begin{itemize}
-    \item provide instructions
-    \item provide expected outcomes
-  \end{itemize}
+The system is designed as a native desktop application and a lightweight server script.
 
-  \item what software should be installed on the machines to run your project? which versions?
-  
-  \item should one set environment variables or configuration files?
-  
-  \item if you're using containerization (e.g.~Docker), 
-  describe how you engineered your deployment scrips (e.g. \texttt{docker-compose.yml} files)
+\paragraph{Prerequisites}
+To run the project, target machines must have installed:
+\begin{itemize}
+    \item \textbf{Python 3.10} (or higher) to support modern \texttt{asyncio} features and type hinting.
+    \item \textbf{Poetry}, the dependency management tool used to isolate the environment.
 \end{itemize}
+
+\paragraph{Installation Instructions}
+Users must clone the repository and initialize the environment. 
+Opening a terminal in the project root, the following command installs all required dependencies from the \texttt{pyproject.toml} file:
+\begin{verbatim}
+poetry install
+\end{verbatim}
+
+\paragraph{Configuration}
+No complex environment variables are required. 
+For the clients, a \texttt{config.json} file is automatically loaded at startup to define the retry policy and UDP discovery timeout. 
+For the server's fault tolerance, the path to the shared storage volume (for the \texttt{heartbeat.json} file) can be optionally modified in the \texttt{constants.py} file 
+depending on the host OS network sharing setup.
 
 \section{User Guide}\label{user-guide}
 
-\begin{itemize}
-  \item how to use your software?
-  %
-  \begin{itemize}
-    \item provide instructions
-    \item provide expected outcomes
-    \item provide screenshots if possible
-  \end{itemize}
-\end{itemize}
+The application offers a plug-and-play experience. 
+Below are the steps to initialize a session and play:
+
+\begin{enumerate}
+    \item \textbf{Start the server:} open a terminal and run the central game server:
+    \begin{verbatim}
+    poetry run python src/server/main.py
+    \end{verbatim}
+    Launch the exact same command on a secondary terminal or machine to instantiate a Backup server for fault tolerance.
+    
+    \item \textbf{Launch the client:} on the players' machines, start the graphical client:
+    \begin{verbatim}
+    poetry run python src/client/main.py
+    \end{verbatim}
+    
+    \item \textbf{Login phase:} the application will automatically scan the LAN for the active server via UDP. 
+    Once found, the user simply enters a unique username to join.
+    
+        
+    \item \textbf{Lobby:} players gather in the lobby. 
+    The first player to connect is designated as the Admin and is granted UI controls to select the game mode, the extra categories, and the round timer.
+    Once everyone is ready, the Admin clicks "Start Game".
+    
+    \item \textbf{Gameplay:} the server broadcasts a random letter. 
+    Players must quickly type words matching the categories starting with that letter. 
+    The UI provides a countdown timer. 
+    
+        
+    \item \textbf{Voting \& Chat:} when the timer expires, the P2P phase begins. 
+    The UI displays all answers submitted by peers. 
+    Players interact by clicking "Valid" or "Invalid" on others' words while discussing them via the integrated live chat.
+    
+    \item \textbf{Results:} the server aggregates the P2P votes, calculates the points according to the game rules, and updates the leaderboard. 
+    The cycle repeats until a player reaches the target score.
+\end{enumerate}
 
 \section{Self-evaluation}\label{self-evaluation}
 
