@@ -798,7 +798,13 @@ poetry install
 
 \paragraph{Configuration}
 No complex environment variables are required. 
-For the clients, a \texttt{config.json} file is automatically loaded at startup to define the retry policy and UDP discovery timeout. 
+For the clients, a \texttt{config.json} file is automatically loaded at startup to define the retry policy and UDP discovery timeout.
+By default, the system requires zero manual configuration thanks to the UDP LAN discovery. 
+However, to handle restrictive network environments or to support remote WAN play, the system implements a \textit{graceful degradation} strategy. 
+Users can optionally modify the \texttt{config.json} file specifying the authoritative server's static IP. 
+If the dynamic UDP discovery times out, the client's reconnection manager automatically falls back to this configuration. 
+If no file is provided, it safely defaults to the local loopback interface, ensuring immediate out-of-the-box functionality for local development and testing 
+without requiring code modifications.
 For the server's fault tolerance, the path to the shared storage volume (for the \texttt{heartbeat.json} file) can be optionally modified in the \texttt{constants.py} file 
 depending on the host OS network sharing setup.
 
