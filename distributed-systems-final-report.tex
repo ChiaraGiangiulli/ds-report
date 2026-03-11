@@ -83,9 +83,13 @@ This section details the functional and non-functional requirements for the "Nom
   \begin{enumerate}
     \item Players must be able to join a shared game room.
     \item The game must present players with categories and an initial letter.
-    \item The players must select at max 5 categories to add to the default ones (Nomi, Cose, Città)
-      from a predefined list, the server will start the game using the top 5 categories voted for, and a random letter.
-      If less than 5 categories are selected, the server will fill the remaining categories with default ones.
+    \item Players can choose from several game modes.
+    \begin{itemize}
+      \item Classic: present only with the default categories (Names, Things, Cities).
+      \item Custom: players can select up to 10 categories to add to the default ones (Names, Things, Cities) from a predefined list.
+            If fewer than 10 categories are selected, the server will start the game using the most voted categories and a random letter.
+            Alternatively, players can select only the chosen categories, excluding the default ones (Names, Things, Cities).
+    \end{itemize}
     \item Players must be able to insert their answers before a timer runs out.
     \item At the end of each round, the system must evaluate answers (check that the first letter is the same as the given one)
     \item After the evaluation, players must be able to vote to accept or reject other players' answers.
@@ -506,7 +510,7 @@ Transitions are triggered by timers or completion events.
     The active gameplay phase. 
     The server has broadcasted the categories/letter and started the round timer. 
     It listens for \texttt{CMD\_SUBMIT} messages containing the players' answers. 
-    This phase ends when the timer expires or all active players have submitted.
+    This phase ends when the timer expires.
     
     \item \texttt{VOTING}: 
     The distributed validation phase. 
@@ -579,7 +583,7 @@ and attempts to join with the same username within the period,
 the server detects the match.
     
 Upon successful re-binding, the server sends the current game state to the client, allowing the user to
-resume playing exactly where they left off.
+resume playing.
 
 \subsection{Data and Consistency Issues}\label{data-and-consistency-issues}
 
@@ -717,7 +721,7 @@ The implementation heavily leverages the Python standard library, alongside spec
   \item \textbf{\texttt{Tkinter}:} provides a lightweight, cross-platform graphical user interface. 
   Because \texttt{Tkinter} requires exclusive control over the main thread, the \texttt{asyncio} event loop is offloaded to a background daemon thread. 
   Synchronization between the asynchronous network layer and the UI is handled safely via the \texttt{root.after()} method.
-  \item \textbf{Poetry:} adopted for modern dependency management and environment isolation, ensuring reproducible builds across different development machines.
+  \item \textbf{\texttt{Poetry}:} adopted for modern dependency management and environment isolation, ensuring reproducible builds across different development machines.
   \item \textbf{\texttt{pytest}:} utilized as the framework for unit and integration testing, ensuring the reliability of FSM transitions and state recovery mechanics.
 \end{itemize}
 
