@@ -861,10 +861,17 @@ Below are the steps to initialize a session and play:
 It should be noted that each student is only responsible for their own section.
 
 \section{Future works}\label{future-works}
-
-Discuss possible future works, improvements, extensions, optimizations, etc.
-
-Also discuss here any unimplemented feature, and how you would have implemented it.
+While the current implementation fully satisfies the project requirements, the architecture leaves room for several enhancements:
+\begin{enumerate}
+  \item \textbf{Advanced leader election}:
+  to solve the weakness of the shared-storage replication, a future improvement would involve replacing the Active-Passive heartbeat file with a proper consensus algorithm, such as \textbf{Raft} or \textbf{Paxos}. This would allow running an odd number of independent server nodes that actively vote for a leader, entirely removing the single point of failure represented by the shared file system.
+  \item \textbf{Automated word validation}:
+  currently, the system relies entirely on the P2P phase for word validation. An unimplemented feature we considered was integrating a \textbf{Dictionary API}. Before broadcasting words for peer voting, the server could asynchronously query an external API to pre-validate standard words, flagging obvious errors and reducing the manual voting burden on players. We excluded this to avoid dependency on external internet services and to maintain the purely localized nature of the game.
+  \item \textbf{Security and encryption}:
+  the system currently transmits JSON payloads in plaintext. For a production deployment over the public Internet, upgrading the raw TCP sockets to \textbf{TLS/SSL encrypted streams} is mandatory to prevent packet sniffing and ensure that malicious actors cannot inject false votes or manipulate the \texttt{CMD\_SUBMIT} payloads.
+  \item \textbf{Database integration}:
+  replacing the \texttt{StateManager} file-based approach with a dedicated database would significantly increase the system's throughput, enabling the server to handle multiple independent game lobbies concurrently without I/O blocking issues.
+\end{enumerate}
 
 \newpage
 \bibliographystyle{plainnat}
