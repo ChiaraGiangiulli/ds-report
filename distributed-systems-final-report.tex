@@ -852,13 +852,20 @@ Below are the steps to initialize a session and play:
 
 \section{Self-evaluation}\label{self-evaluation}
 
-\begin{itemize}
-  \item An individual section is required for each member of the group
-  \item Each member must self-evaluate their work, listing the strengths and weaknesses of the product
-  \item Each member must describe their role within the group as objectively as possible.
-\end{itemize}
+\subsection{Chiara Giangiulli}
+My primary focus was on the protocol design, peer-to-peer architecture and server replication. 
+I defined the core message structures and implemented the P2P communication layer used during the decentralized voting phase. 
+Furthermore, I developed the primary-backup logic, based on the heartbeat mechanism, to ensure server high availability. 
+I also contributed to the project setup and GUI refinements.
 
-It should be noted that each student is only responsible for their own section.
+A major strength of my contribution is the decentralized voting phase, which significantly reduces the central server's bandwidth and CPU load. 
+Additionally, the structured JSON message protocol ensures a maintainable and extensible communication layer. 
+Another key strength is the automated failover mechanism which guarantees high availability and seamless session recovery, masking server crashes from the end users.
+
+However, a structural weakness lies in the replication mechanism: relying on a shared file system for the heartbeat introduces a single point of failure. 
+In the context of the CAP theorem, this architecture prioritizes Consistency and Availability, lacking Partition Tolerance. 
+If a network partition occurs or the shared storage experiences high latency, multiple servers could attempt to assume the primary role simultaneously, 
+ultimately compromising data consistency.
 
 \section{Future works}\label{future-works}
 While the current implementation fully satisfies the project requirements, the architecture leaves room for several enhancements:
