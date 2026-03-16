@@ -883,16 +883,19 @@ Below are the steps to initialize a session and play:
 \subsection{Chiara Giangiulli}
 My primary focus was on the protocol design, peer-to-peer architecture and server replication. 
 I defined the core message structures and implemented the P2P communication layer used during the decentralized voting phase. 
-Furthermore, I developed the primary-backup logic, based on the heartbeat mechanism, to ensure server high availability. 
-I also contributed to the project setup and GUI refinements.
+Furthermore, I developed the primary-backup logic, based on the heartbeat mechanism, to ensure server high availability, and a UDP broadcast system for dynamic server discovery. 
+I also contributed to the project setup, GUI refinements, and the automated testing of the networking components.
 
 A major strength of my contribution is the decentralized voting phase, which significantly reduces the central server's bandwidth and CPU load. 
 Additionally, the structured JSON message protocol ensures a maintainable and extensible communication layer. 
-Another key strength is the automated failover mechanism which guarantees high availability and seamless session recovery, masking server crashes from the end users.
+Another key strength is the automated failover mechanism, which guarantees high availability and seamless session recovery, masking server crashes from the end users. 
+Furthermore, the UDP discovery mechanism was specifically implemented to allow the game to be easily hosted and played from any PC on the local network without hardcoding IPs in the codebase.
+To overcome the natural boundaries of UDP broadcasts, this is paired with a graceful fallback to a configuration file: if the LAN discovery times out, clients can seamlessly connect over an extended network using a static public IP.
+This results in a highly decoupled architecture that adapts to both dynamic LANs and remote environments.
 
 However, a structural weakness lies in the replication mechanism: relying on a shared file system for the heartbeat introduces a single point of failure. 
 In the context of the CAP theorem, this architecture prioritizes Consistency and Availability, lacking Partition Tolerance. 
-If a network partition occurs or the shared storage experiences high latency, multiple servers could attempt to assume the primary role simultaneously, 
+If a network partition occurs or the shared storage experiences high latency, multiple servers could attempt to assume the primary role simultaneously,
 ultimately compromising data consistency.
 
 \subsection{Giovanni Pisoni}
