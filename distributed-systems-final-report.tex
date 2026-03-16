@@ -920,17 +920,41 @@ which reduces clarity and would benefit from a cleaner separation in a future it
 Finally, the reconnection retry delay is applied uniformly between all attempts; an exponential backoff strategy would be more appropriate
 to avoid flooding a recovering server with rapid reconnection requests.
 
+\subsection{Dilaver Shtini}
+In this project, I primarily focused on the client-side architecture, the core game logic using a finite state machine (FSM), and state persistence mechanisms.
+I partially developed the graphical user interface (GUI), integrating the lobby, chat, and real-time voting system, connecting visual events to
+the underlying network layer. On the server side, I designed the FSM to coordinate round phases, centralized timers, and input validation. Additionally, I
+implemented continuous state serialization on the shared file system and the session recovery algorithm that seamlessly reconnects disconnected clients to
+their previous state.
+
+A highlight of my contribution is the session recovery system, which integrates seamlessly with the server's replication architecture. By restoring the state
+of the FSM, timers, and client UI, the system ensures an uninterrupted user experience during server failovers or temporary network outages. Furthermore,
+the FSM implementation ensures deterministic and synchronized game transitions across all distributed nodes, effectively preventing race conditions during
+critical phases such as reply submission and scoring.
+
+However, a structural weakness lies in the state persistence strategy. Relying on synchronous I/O operations to serialize the entire game state into a JSON
+file introduces a significant performance bottleneck. While this approach effectively supports active-passive failover for a single lobby, it severely limits
+the system's horizontal scalability and processing speed. If the server were to handle a large number of concurrent game sessions, this file-based approach
+would cause severe I/O blockages, requiring a dedicated database solution.
+
 \section{Future works}\label{future-works}
 While the current implementation fully satisfies the project requirements, the architecture leaves room for several enhancements:
 \begin{enumerate}
   \item \textbf{Advanced leader election}:
-  to solve the weakness of the shared-storage replication, a future improvement would involve replacing the Active-Passive heartbeat file with a proper consensus algorithm, such as \textbf{Raft} or \textbf{Paxos}. This would allow running an odd number of independent server nodes that actively vote for a leader, entirely removing the single point of failure represented by the shared file system.
+  to solve the weakness of the shared-storage replication, a future improvement would involve replacing the Active-Passive heartbeat file with a proper
+  consensus algorithm, such as \textbf{Raft} or \textbf{Paxos}. This would allow running an odd number of independent server nodes that actively vote for a leader,
+  entirely removing the single point of failure represented by the shared file system.
   \item \textbf{Automated word validation}:
-  currently, the system relies entirely on the P2P phase for word validation. An unimplemented feature we considered was integrating a \textbf{Dictionary API}. Before broadcasting words for peer voting, the server could asynchronously query an external API to pre-validate standard words, flagging obvious errors and reducing the manual voting burden on players. We excluded this to avoid dependency on external internet services and to maintain the purely localized nature of the game.
+  currently, the system relies entirely on the P2P phase for word validation. An unimplemented feature we considered was integrating a \textbf{Dictionary API}.
+  Before broadcasting words for peer voting, the server could asynchronously query an external API to pre-validate standard words, flagging obvious errors and
+  reducing the manual voting burden on players. We excluded this to avoid dependency on external internet services and to maintain the purely localized nature of the game.
   \item \textbf{Security and encryption}:
-  the system currently transmits JSON payloads in plaintext. For a production deployment over the public Internet, upgrading the raw TCP sockets to \textbf{TLS/SSL encrypted streams} is mandatory to prevent packet sniffing and ensure that malicious actors cannot inject false votes or manipulate the \texttt{CMD\_SUBMIT} payloads.
+  the system currently transmits JSON payloads in plaintext. For a production deployment over the public Internet, upgrading the raw TCP sockets to
+  \textbf{TLS/SSL encrypted streams} is mandatory to prevent packet sniffing and ensure that malicious actors cannot inject false votes or manipulate the
+  \texttt{CMD\_SUBMIT} payloads.
   \item \textbf{Database integration}:
-  replacing the \texttt{StateManager} file-based approach with a dedicated database would significantly increase the system's throughput, enabling the server to handle multiple independent game lobbies concurrently without I/O blocking issues.
+  replacing the \texttt{StateManager} file-based approach with a dedicated database would significantly increase the system's throughput, enabling the server
+  to handle multiple independent game lobbies concurrently without I/O blocking issues.
 \end{enumerate}
 
 \newpage
