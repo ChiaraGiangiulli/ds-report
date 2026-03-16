@@ -831,23 +831,51 @@ Below are the steps to initialize a session and play:
     
     \item \textbf{Login phase:} the application will automatically scan the LAN for the active server via UDP. 
     Once found, the user simply enters a unique username to join.
-    
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.6\textwidth]{figures/login.png}
+      \caption{The Login Screen.}
+      \label{fig:login_screen}
+    \end{figure}
         
     \item \textbf{Lobby:} players gather in the lobby. 
     The first player to connect is designated as the Admin and is granted UI controls to select the game mode, the extra categories, and the round timer.
     Once everyone is ready, the Admin clicks "Start Game".
-    
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.6\textwidth]{figures/lobby.png}
+        \caption{The Lobby Screen.}
+      \label{fig:lobby_screen}
+    \end{figure}
+
     \item \textbf{Gameplay:} the server broadcasts a random letter. 
     Players must quickly type words matching the categories starting with that letter. 
     The UI provides a countdown timer. 
-    
-        
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.6\textwidth]{figures/game.png}
+      \caption{The Game Screen.}
+      \label{fig:game_screen}
+    \end{figure}
+
     \item \textbf{Voting \& Chat:} when the timer expires, the P2P phase begins. 
     The UI displays all answers submitted by peers. 
     Players interact by clicking "Valid" or "Invalid" on others' words while discussing them via the integrated live chat.
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.6\textwidth]{figures/voting.png}
+      \caption{The Voting Phase and P2P Chat interface.}
+      \label{fig:voting_screen}
+    \end{figure}
     
     \item \textbf{Results:} the server aggregates the P2P votes, calculates the points according to the game rules, and updates the leaderboard. 
     The cycle repeats until a player reaches the target score.
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.2\textwidth]{figures/game_over.png}
+      \caption{The Game Over Screen.}
+      \label{fig:game_over_screen}
+    \end{figure}
 \end{enumerate}
 
 \section{Self-evaluation}\label{self-evaluation}
