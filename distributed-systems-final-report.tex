@@ -895,6 +895,31 @@ In the context of the CAP theorem, this architecture prioritizes Consistency and
 If a network partition occurs or the shared storage experiences high latency, multiple servers could attempt to assume the primary role simultaneously, 
 ultimately compromising data consistency.
 
+\subsection{Giovanni Pisoni}
+My primary focus was on the server-side networking infrastructure and the client-side connection management.
+I designed and implemented the core TCP server (\texttt{GameServer}), including the \texttt{asyncio}-based connection loop,
+the management of concurrent client connections via \texttt{ClientHandler} instances, and the maintenance of the active client list.
+On the client side, I developed the \texttt{NetworkHandler} class, responsible for establishing and maintaining the TCP connection to the server
+and running the asynchronous receive loop without blocking the Tkinter UI thread.
+I also implemented the main game screen, including the category input fields and the local countdown timer.
+Finally, I developed the end-of-round consensus pipeline --- the \texttt{VotingAggregator}, the \texttt{ScoringEngine}, and the score broadcasting logic ---
+as well as the \texttt{ReconnectionManager}, which handles unexpected disconnections via a configurable circular retry policy across multiple fallback servers.
+
+A major strength of my contribution is the reconnection system, which handles the full client-side failover scenario end-to-end,
+combining circular server rotation with graceful degradation to static IP configuration.
+The component is extensively tested, covering edge cases such as malformed configuration files, rotation exhaustion, and concurrent reconnection guards.
+The clean separation between the network layer and the application logic also made each component easy to test in isolation
+and straightforward to reuse across reconnection attempts.
+Additionally, the benefit-of-doubt policy in the voting aggregation ensures fairness when network issues prevent votes from being collected in full,
+prioritising the player experience over strict consistency.
+
+However, the server-side message reading relies on a fixed-size buffer rather than a delimiter-based approach,
+which could lead to issues with large or fragmented messages and represents an area for improvement.
+Furthermore, the networking component on the client side carries two distinct responsibilities --- server communication and peer-to-peer communication ---
+which reduces clarity and would benefit from a cleaner separation in a future iteration.
+Finally, the reconnection retry delay is applied uniformly between all attempts; an exponential backoff strategy would be more appropriate
+to avoid flooding a recovering server with rapid reconnection requests.
+
 \section{Future works}\label{future-works}
 While the current implementation fully satisfies the project requirements, the architecture leaves room for several enhancements:
 \begin{enumerate}
