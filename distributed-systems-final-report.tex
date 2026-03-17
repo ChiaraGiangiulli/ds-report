@@ -37,6 +37,8 @@ The game features a distributed architecture that combines client–server and p
 ensuring consistent gameplay with fault tolerance and synchronized state across all nodes.
 \end{abstract}
 
+\newpage
+
 \section{Concept}\label{concept}
 
 \begin{itemize}
@@ -64,7 +66,7 @@ ensuring consistent gameplay with fault tolerance and synchronized state across 
   The game mainly involves two roles: the players and the server. Players actively participate by submitting answers and voting,
   while the game server manages the overall game state, enforces the rules and aggregates the results.
   
-  \begin{figure}
+  \begin{figure}[H]
     \begin{center}
         \includegraphics[width=0.75\textwidth]{figures/use_case.png}
         \caption[Use case]{Use case diagram (made with \cite{lucidchart})}
@@ -573,7 +575,7 @@ allowing the user to continue playing as before.
 When a client socket disconnects unexpectedly, 
 the server does not immediately evict the player from the match, 
 it marks the user as disconnected but keeps their object (score, username) 
-in memory for a configurable period.
+in memory.
     
 If the user restarts the client application
 and attempts to join with the same username within the period, 
@@ -630,7 +632,7 @@ The system adopts a \textbf{Hybrid Consistency Model}:
     to occasionally award points for a borderline answer than to silently invalidate a 
     correct one due to an incomplete vote collection. 
     Answers already marked as syntactically invalid during the initial server-side 
-    check are never subject to this rule — they remain invalid regardless.
+    check are never subject to this rule, they remain invalid regardless.
 \end{itemize}
 
 \subsection{Availability}\label{availability}
@@ -650,7 +652,7 @@ The system does not employ a dedicated hardware Load Balancer
 because the traffic volume for a single session does not justify 
 the added latency and complexity.
 
-The workload is distributed between the Central Server and the Client Nodes 
+The workload is distributed between the central Server and the Client nodes 
 via the Peer-to-Peer layer.
 Delegating the bandwidth-intensive tasks to the clients acts as a 
 logical load balancer, 
@@ -659,11 +661,12 @@ during the most active game phases.
 
 \subsubsection*{Network Partitioning Behavior}
 
-In the context of the CAP Theorem, 
-the system prioritizes Consistency over Availability in the event of a network partition.
-
-In the event of a network partition, the system prefers to pause the service 
-rather than allowing offline gameplay.
+In the context of the CAP Theorem, the system operates primarily as a CA (Consistency and Availability) architecture under normal conditions. 
+However, in the event of a network partition, the system prioritizes Availability over Consistency. 
+Instead of blocking offline gameplay, the Active-Passive failover mechanism aggressively attempts to keep the game running: 
+isolated backup nodes will automatically promote themselves to primaries. 
+While this ensures that players can seamlessly reconnect and continue playing, it introduces a \textit{split-brain} scenario where multiple servers might accept inputs simultaneously, 
+ultimately compromising the consistency of the shared game state until the partition is resolved.
 
 \section{Implementation}\label{implementation}
 
