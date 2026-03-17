@@ -29,7 +29,7 @@
 \maketitle
 
 \begin{abstract}
-This project presents a real-time, distributed implementation of the classic Italian word game Nomi, Cose, Città.
+This project presents a real-time, distributed implementation of the classic italian word game Nomi, Cose, Città.
 It transforms the traditional pen-and-paper format into a modern multiplayer experience, 
 where players compete in real time to find words that match given categories and starting letters.
 At the end of each round, participants collaboratively validate each other’s answers through an integrated voting and chat system.
@@ -62,7 +62,7 @@ ensuring consistent gameplay with fault tolerance and synchronized state across 
   beyond the duration of the session.
   
   The game mainly involves two roles: the players and the server. Players actively participate by submitting answers and voting,
-  while the game server manages the overall game state, enforces the rules, and coordinates communication between users.
+  while the game server manages the overall game state, enforces the rules and aggregates the results.
   
   \begin{figure}
     \begin{center}
@@ -86,9 +86,9 @@ This section details the functional and non-functional requirements for the "Nom
     \item Players can choose from several game modes.
     \begin{itemize}
       \item Classic: present only with the default categories (Names, Things, Cities).
-      \item Custom: players can select up to 10 categories to add to the default ones (Names, Things, Cities) from a predefined list.
-            If fewer than 10 categories are selected, the server will start the game using the most voted categories and a random letter.
-            Alternatively, players can select only the chosen categories, excluding the default ones (Names, Things, Cities).
+      \item Custom: the admin chooses the number of categories they want to add (up to 10) to the default ones (Names, Things, Cities) from a predefined list and all the players can vote what categories to include.
+            The server will then start the game using the most voted categories and a random letter.
+            Alternatively, if the admin chooses to exclude the default categories (Names, Things, Cities), players can select only the chosen ones.
     \end{itemize}
     \item Players must be able to insert their answers before a timer runs out.
     \item At the end of each round, the system must evaluate answers (check that the first letter is the same as the given one)
@@ -200,8 +200,6 @@ This section details the functional and non-functional requirements for the "Nom
     A modular architecture will help maintain and extend the project.
 
   \item Performance and concurrency
-  
-    The game is not real-time, but:
     \begin{itemize}
       \item the server must handle multiple clients concurrently;
       \item chat and votes should be delivered timely;
@@ -302,7 +300,6 @@ Since there is no static registry for the dynamic client IPs, the system impleme
     When a client application starts, it listens on a predefined UDP port. 
     The active server announces its presence (IP and TCP port) over the local network, 
     allowing clients to dynamically discover and connect to the authoritative node.
-  \item \textbf{Server Discovery:} Clients identify the server via a known endpoint provided at startup configuration.
     \item \textbf{Peer Discovery:} The Central Server acts as a dynamic registry. 
     Upon joining the lobby, each client registers its listening socket (IP:Port) with the server. 
     When the round starts, the server broadcasts the \textit{peer map} (a list mapping usernames to their respective addresses) to all participants, 
