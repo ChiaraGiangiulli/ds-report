@@ -2,7 +2,6 @@
 \usepackage[utf8]{inputenc}
 \usepackage{hyperref}
 \usepackage{url}
-\usepackage{natbib}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{cleveref} % this must be the last package to be loaded
@@ -69,7 +68,7 @@ ensuring consistent gameplay with fault tolerance and synchronized state across 
   \begin{figure}[H]
     \begin{center}
         \includegraphics[width=0.75\textwidth]{figures/use_case.png}
-        \caption[Use case]{Use case diagram (made with \cite{lucidchart})}
+        \caption[Use case]{Use case diagram}
         \label{fig:use_case_diagram}
     \end{center}
   \end{figure}
@@ -258,7 +257,7 @@ Additionally, this approach increases resilience: since voting happens between p
 \begin{figure}[H]
   \begin{center}
       \includegraphics[width=0.75\textwidth]{figures/architecture.png}
-      \caption[Architecture]{Architecture diagram (made with \cite{lucidchart})}
+      \caption[Architecture]{Architecture diagram}
       \label{fig:arch_diagram}
   \end{center}
 \end{figure}
@@ -389,7 +388,7 @@ Communication relies on serialized JSON messages, categorized by interaction typ
 \begin{figure}[H]
   \begin{center}
       \includegraphics[width=1\textwidth]{figures/class_diagram.png}
-      \caption[Class diagram]{Class diagram (made with \cite{lucidchart})}
+      \caption[Class diagram]{Class diagram}
       \label{fig:class_diagram}
   \end{center}
 \end{figure}
@@ -436,7 +435,7 @@ The interaction evolves through the game stages as follows:
     \begin{figure}[H]
       \begin{center}
           \includegraphics[width=0.6\textwidth]{figures/handshake_sequence.png}
-          \caption[Handshake Sequence]{Handshake Sequence diagram (made with \cite{lucidchart})}
+          \caption[Handshake Sequence]{Handshake Sequence diagram}
           \label{fig:handshake_sequence}
       \end{center}
     \end{figure}
@@ -450,7 +449,7 @@ The interaction evolves through the game stages as follows:
     \begin{figure}[H]
       \begin{center}
           \includegraphics[width=0.6\textwidth]{figures/round_sequence.png}
-          \caption[Game Round Sequence]{Round Sequence diagram (made with \cite{lucidchart})}
+          \caption[Game Round Sequence]{Round Sequence diagram}
           \label{fig:round_sequence}
       \end{center}
     \end{figure}
@@ -468,7 +467,7 @@ The interaction evolves through the game stages as follows:
     \begin{figure}[H]
       \begin{center}
           \includegraphics[width=0.6\textwidth]{figures/voting_sequence.png}
-          \caption[Chat and Voting Sequence]{Chat and Voting Sequence diagram (made with \cite{lucidchart})}
+          \caption[Chat and Voting Sequence]{Chat and Voting Sequence diagram}
           \label{fig:voting_chat_sequence}
       \end{center}
     \end{figure}
@@ -482,7 +481,7 @@ The interaction evolves through the game stages as follows:
     \begin{figure}[H]
       \begin{center}
           \includegraphics[width=0.6\textwidth]{figures/consensus_scoring_sequence.png}
-          \caption[Consensus and Scoring Sequence]{Consensus - Scoring Sequence diagram (made with \cite{lucidchart})}
+          \caption[Consensus and Scoring Sequence]{Consensus - Scoring Sequence diagram}
           \label{fig:consensus_scoring_sequence}
       \end{center}
     \end{figure}
@@ -538,7 +537,7 @@ The Client's behavior changes based on the current global state broadcast by the
 \begin{figure}[H]
   \begin{center}
       \includegraphics[width=0.6\textwidth]{figures/states_diagram.png}
-      \caption[State Diagram]{States Diagram (made with \cite{lucidchart})}
+      \caption[State Diagram]{States Diagram}
       \label{fig:states}
   \end{center}
 \end{figure}
@@ -959,9 +958,5 @@ While the current implementation fully satisfies the project requirements, the a
   replacing the \texttt{StateManager} file-based approach with a dedicated database would significantly increase the system's throughput, enabling the server
   to handle multiple independent game lobbies concurrently without I/O blocking issues.
 \end{enumerate}
-
-\newpage
-\bibliographystyle{plainnat}
-\bibliography{references}
 
 \end{document}
